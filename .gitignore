@@ -1,0 +1,25 @@
+# Python / backend
+backend/__pycache__/
+backend/*.py[cod]
+backend/venv/
+backend/.env
+
+# Docker
+*.log
+*.pid
+docker-compose.override.yml
+
+# Node / frontend
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
