@@ -6,5 +6,5 @@ router = APIRouter(
 )
 
 @router.get("/")
-def auth_root():
+def dish_root():
     return {"message": "Not implemented"}
