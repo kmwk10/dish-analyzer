@@ -1,7 +1,7 @@
 # Backend
 
 ## Структура проекта
-
+```
 backend/
 ├── .dockerignore 
 ├── Dockerfile             # Образ backend-сервера
@@ -38,4 +38,5 @@ backend/
         ├── models.py
         ├── schemas.py
         ├── router.py
-        └── service.py 
+        └── service.py
+```
