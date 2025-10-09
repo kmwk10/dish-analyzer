@@ -5,6 +5,14 @@ router = APIRouter(
     tags=["Auth"]
 )
 
-@router.get("/")
-def auth_root():
-    return {"message": "Not implemented"}
+@router.post("/register")
+def register_user():
+    return {"message": "stub: register user"}
+
+@router.post("/login")
+def login_user():
+    return {"message": "stub: login"}
+
+@router.post("/logout")
+def logout_user():
+    return {"message": "stub: logout"}
