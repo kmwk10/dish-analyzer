@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import AuthPage from "./pages/AuthPage";
 import DishesPage from "./pages/DishesPage";
@@ -7,10 +7,25 @@ import ProductsPage from "./pages/ProductsPage";
 import SettingsPage from "./pages/SettingsPage";
 
 function App() {
+  const location = useLocation();
+  const hideNavbar = location.pathname === "/auth";
+
+  function HomeRedirect() {
+    // const isAuthenticated = localStorage.getItem("token");
+    const isAuthenticated = true; // ! заменить на настоящую проверку !
+
+    return isAuthenticated ? (
+      <Navigate to="/dishes" replace />
+    ) : (
+      <Navigate to="/auth" replace />
+    );
+  }
+
   return (
     <>
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       <Routes>
+        <Route path="/" element={<HomeRedirect />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dishes" element={<DishesPage />} />
         <Route path="/dishes/create" element={<CreateDishPage />} />
