@@ -9,7 +9,7 @@ export default function Navbar() {
   ];
 
   return (
-    <Card.Root height="8vh" fontSize="1.5rem">
+    <Card height="8vh" minHeight="3.5rem" fontSize="1.5rem">
       <Flex flex="1" align="center" margin="0 10vw">
         {links.map((link) => (
           <Link
@@ -27,6 +27,6 @@ export default function Navbar() {
           </Link>
         ))}
       </Flex>
-    </Card.Root>
+    </Card>
   );
 }

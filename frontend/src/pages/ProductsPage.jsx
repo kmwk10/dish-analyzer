@@ -1,11 +1,18 @@
-import { Card } from "@chakra-ui/react";
+import { Card, CardBody, Box } from "@chakra-ui/react";
+import { useState } from "react";
+import ToggleCards from "../components/ToggleCards";
 
-export default function ProducrsPage() {
+export default function ProductsPage() {
+  const [selected, setSelected] = useState("Мои продукты");
+
   return (
-    <Card.Root>
-        <Card.Body>
-          Products Page
-        </Card.Body>
-    </Card.Root>
+    <Box margin="2vh 10vw">
+      <ToggleCards option1={"Мои продукты"} option2={"Все продукты"} onChange={setSelected}/>
+      <Card>
+        <CardBody>
+          Products Page. Выбрано: {selected}
+        </CardBody>
+      </Card>
+    </Box>
   );
 }
