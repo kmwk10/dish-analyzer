@@ -10,7 +10,7 @@ export default function ToggleCards({ option1, option2, onChange }) {
   };
 
 return (
-    <Flex width="100%" height="3rem" margin="4vh 0">
+    <Flex width="100%" height="3rem" margin="3vh 0">
       <Card
         flex="1"
         cursor="pointer"
