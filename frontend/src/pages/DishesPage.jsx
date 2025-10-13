@@ -17,8 +17,10 @@ export default function DishesPage() {
     "nutrition_per_serving": "280/37/6,5/24",
     "nutrition_total": "560/74/13/48"
   }
-  const dishes = [dish, dish, dish]
 
+  const myDishes = []
+  const allDishes = [dish]
+  const currentDishes = (selected === "Мои блюда") ? myDishes : allDishes
 
   return (
     <Box margin="2vh 10vw">
@@ -27,12 +29,13 @@ export default function DishesPage() {
       <Button size="md" leftIcon={<SmallAddIcon/>} height="3rem" colorScheme="purple" marginBottom="3vh">
         Добавить блюдо
       </Button>
-      <DishesList dishes={dishes}/>
-      <Card marginTop="1rem">
-        <CardBody>
-          Dishes Page. Выбрано: {selected}
-        </CardBody>
-      </Card>
+      {currentDishes.length > 0 ? (
+        <DishesList dishes={currentDishes} />
+      ) : (
+        <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
+          Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить блюдо.
+        </Card>
+      )}
     </Box>
   );
 }
