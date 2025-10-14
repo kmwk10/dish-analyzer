@@ -1,4 +1,4 @@
-import { Card, CardBody, Box, Input, Button } from "@chakra-ui/react";
+import { Card, Box, Input, Button } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import ToggleCards from "../components/ToggleCards";
