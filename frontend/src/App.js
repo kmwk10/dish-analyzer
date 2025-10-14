@@ -5,6 +5,7 @@ import DishesPage from "./pages/DishesPage";
 import CreateDishPage from "./pages/CreateDishPage";
 import ProductsPage from "./pages/ProductsPage";
 import SettingsPage from "./pages/SettingsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   const location = useLocation();
@@ -31,6 +32,7 @@ function App() {
         <Route path="/dishes/create" element={<CreateDishPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>
   );

@@ -2,10 +2,11 @@ import { Box, Card, CardHeader, Flex, Heading, Text } from "@chakra-ui/react";
 import SettingsItem from "../components/SettingsItem";
 
 export default function SettingsPage() {
+  // Для тестирования
   const user_info = {
     "name": "My name",
     "email": "mymail@gmail.com",
-    "password_len": 8,
+    "password_len": 8
   }
 
   return (
