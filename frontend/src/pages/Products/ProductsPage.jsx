@@ -5,16 +5,24 @@ import { useState, useRef  } from "react";
 import ToggleCards from "../../components/ToggleCards";
 import ProductsList from "./ProductsList";
 import ProductCard from "./ProductCard";
+import ProductEditor from "./ProductEditor";
 
 export default function ProductsPage() {
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const cardRef = useRef()
+  const editRef = useRef();
 
   useOutsideClick({
     ref: cardRef,
     handler: () => setSelectedProduct(null),
+  });
+
+  useOutsideClick({
+    ref: editRef,
+    handler: () => setEditingProduct(null),
   });
 
   // Для тестирования
@@ -53,18 +61,21 @@ export default function ProductsPage() {
     <Box margin="2vh 10vw">
       <ToggleCards option1={"Мои продукты"} option2={"Все продукты"} onChange={setSelectedSection}/>
       <Input size="lg" placeholder="Введите название продукта" background="white" marginBottom="3vh"/>
-      <Button size="md" leftIcon={<SmallAddIcon/>} height="3rem" colorScheme="purple" marginBottom="3vh">
+      <Button size="md" leftIcon={<SmallAddIcon/>} height="3rem" colorScheme="purple" marginBottom="3vh" onClick={() => setEditingProduct({})}>
         Добавить продукт
       </Button>
       {currentProducts.length > 0 ? (
-        <ProductsList products={currentProducts} setSelectedProduct={setSelectedProduct}/>
+        <ProductsList products={currentProducts} setSelectedProduct={setSelectedProduct} setEditingProduct={setEditingProduct}/>
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
         </Card>
       )}
       {selectedProduct && (
-        <ProductCard ref={cardRef} product={selectedProduct} />
+        <ProductCard ref={cardRef} product={selectedProduct} onEdit={() => (setEditingProduct(selectedProduct), setSelectedProduct(null))} />
+      )}
+      {editingProduct && (
+        <ProductEditor ref={editRef} product={editingProduct} onSave={() => (setSelectedProduct(editingProduct), setEditingProduct(null))} />
       )}
     </Box>
   );

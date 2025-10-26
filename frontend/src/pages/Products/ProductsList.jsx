@@ -2,7 +2,7 @@ import { Card, Flex, Text } from "@chakra-ui/react";
 
 import ProductItem from "./ProductItem";
 
-export default function ProductsList({ products,setSelectedProduct }) {
+export default function ProductsList({ products,setSelectedProduct, setEditingProduct }) {
   return (
     <Card backgroundColor="#ECECEC" padding="3vh">
       <Flex alignItems="center" padding="0 4rem 2vh 1.5rem">
@@ -11,7 +11,7 @@ export default function ProductsList({ products,setSelectedProduct }) {
           <Text width="28svw">Используется в</Text>
       </Flex>
       {products.map((product) => (
-        <ProductItem key={product.id} product={product} setSelectedProduct={setSelectedProduct}/>
+        <ProductItem key={product.id} product={product} setSelectedProduct={setSelectedProduct} setEditingProduct={setEditingProduct}/>
       ))}
     </Card>
   );

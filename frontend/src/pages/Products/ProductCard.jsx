@@ -1,7 +1,7 @@
 import { Card, Box, Text, CardBody, Flex, Button } from "@chakra-ui/react";
 import { forwardRef } from "react";
 
-const ProductCard = forwardRef(({ product }, ref) => {
+const ProductCard = forwardRef(({ product, onEdit }, ref) => {
   return (
     <Box
       position="fixed"
@@ -49,7 +49,7 @@ const ProductCard = forwardRef(({ product }, ref) => {
               </Card>
             </>
           )}
-          <Button size="sm" colorScheme="purple" width="100%" mb="1rem">Изменить</Button>
+          <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={onEdit}>Изменить</Button>
           <Button size="sm" colorScheme="red" width="100%">Удалить</Button>
         </CardBody>
       </Card>
