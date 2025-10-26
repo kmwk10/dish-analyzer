@@ -18,14 +18,35 @@ export default function ProductsPage() {
   });
 
   // Для тестирования
-  const product = {
+  const product1 = {
     "name": "Творог 0,5% (Село зелёное)",
-    "nutrition_per_100g": "74/18/0,5/3,3",
-    "used_in_dishes": "Творожная запеканка, сырники, ватрушки"
+    "calories": 74,
+    "protein": 18,
+    "fat": 0.5,
+    "carbs": 3.3,
+    "used_in_dishes": ["Творожная запеканка", "Сырники", "Ватрушки"]
   }
 
-  const myProducts = []
-  const allProducts = [product]
+    const product2 = {
+    "name": "Манка (Шебекинская)",
+    "calories": 350,
+    "protein": 13,
+    "fat": 1,
+    "carbs": 72,
+    "used_in_dishes": ["Творожная запеканка"]
+  }
+
+  const product3 = {
+    "name": "Молоко 2,5% (Станция молочная)",
+    "calories": 53,
+    "protein": 3,
+    "fat": 2.5,
+    "carbs": 4.7,
+    "used_in_dishes": []
+  }
+
+  const myProducts = [product1]
+  const allProducts = [product1, product2,  product3]
   const currentProducts = (selectedSection === "Мои продукты") ? myProducts : allProducts
 
   return (
