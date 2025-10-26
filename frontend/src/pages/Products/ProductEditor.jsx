@@ -3,10 +3,10 @@ import { forwardRef, useState } from "react";
 
 const ProductEditor = forwardRef(({ product, onSave }, ref) => {
   const [name, setName] = useState(product?.name || "");
-  const [calories, setCalories] = useState(product?.calories || "");
-  const [protein, setProtein] = useState(product?.protein || "");
-  const [fat, setFat] = useState(product?.fat || "");
-  const [carbs, setCarbs] = useState(product?.carbs || "");
+  const [calories, setCalories] = useState(String(product?.calories).replaceAll('.', ',') || "");
+  const [protein, setProtein] = useState(String(product?.protein).replaceAll('.', ',') || "");
+  const [fat, setFat] = useState(String(product?.fat).replaceAll('.', ',') || "");
+  const [carbs, setCarbs] = useState(String(product?.carbs).replaceAll('.', ',') || "");
 
   return (
     <Box
