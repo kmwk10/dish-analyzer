@@ -2,7 +2,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import AuthPage from "./pages/Auth/AuthPage";
 import DishesPage from "./pages/Dishes/DishesPage";
-import CreateDishPage from "./pages/CreateDish/CreateDishPage";
+import EditorDishPage from "./pages/EditorDish/EditorDishPage";
 import ProductsPage from "./pages/Products/ProductsPage";
 import SettingsPage from "./pages/Settings/SettingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -29,7 +29,7 @@ function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dishes" element={<DishesPage />} />
-        <Route path="/dishes/create" element={<CreateDishPage />} />
+        <Route path="/dishes/editor" element={<EditorDishPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/*" element={<NotFoundPage />} />

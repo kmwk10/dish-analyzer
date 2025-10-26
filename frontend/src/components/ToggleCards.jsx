@@ -1,7 +1,7 @@
 import { Flex, Card, CardBody, Text } from "@chakra-ui/react";
 import { useState } from "react";
 
-export default function ToggleCards({ option1, option2, onChange }) {
+export default function ToggleCards({ size="md", option1, option2, onChange }) {
   const [selected, setSelected] = useState(option1);
 
   const handleClick = (option) => {
@@ -9,8 +9,13 @@ export default function ToggleCards({ option1, option2, onChange }) {
     if (onChange) onChange(option);
   };
 
-return (
-    <Flex width="100%" height="3rem" margin="3vh 0">
+  const style = {
+    height: size === "md" ? "3rem" : "2.5rem",
+    fontSize: size === "md" ? "xl" : "md"
+  };
+
+  return (
+    <Flex width="100%" height={style.height} margin="3vh 0">
       <Card
         flex="1"
         cursor="pointer"
@@ -22,7 +27,7 @@ return (
         onClick={() => handleClick(option1)}
       >
         <CardBody>
-            <Text fontSize="xl">
+            <Text fontSize={style.fontSize}>
                 {option1}
             </Text>
         </CardBody>
@@ -40,7 +45,7 @@ return (
         onClick={() => handleClick(option2)}
       >
         <CardBody>
-            <Text fontSize="xl">
+            <Text fontSize={style.fontSize}>
                 {option2}
             </Text>
         </CardBody>
