@@ -20,12 +20,12 @@ export default function DishesPage() {
   // Для тестирования
   const dish = {
     "name": "Творожная запеканка",
-    "weight": "480г",
-    "servings": "2 порции",
-    "serving_weight": "240г",
-    "nutrition_per_100g": "117/15/2,5/10",
-    "nutrition_per_serving": "280/37/6,5/24",
-    "nutrition_total": "560/74/13/48"
+    "weight": 480,
+    "calories": 117,
+    "protein": 15,
+    "fat": 2.5,
+    "carbs": 10,
+    "servings": 2
   }
 
   const dish2 = {...dish}
