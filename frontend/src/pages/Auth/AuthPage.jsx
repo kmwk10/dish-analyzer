@@ -1,9 +1,9 @@
 import { Box, Flex } from "@chakra-ui/react";
 import { useState } from "react";
 
-import WelcomeCard from "../components/WelcomeCard";
-import LoginCard from "../components/LoginCard";
-import RegisterCard from "../components/RegisterCard";
+import WelcomeCard from "./WelcomeCard";
+import LoginCard from "./LoginCard";
+import RegisterCard from "./RegisterCard";
 
 export default function AuthPage() {
   const [view, setView] = useState("welcome"); // welcome | login | register

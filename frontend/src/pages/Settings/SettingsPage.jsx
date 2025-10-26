@@ -1,9 +1,9 @@
 import { Box, Card, CardHeader, Heading } from "@chakra-ui/react";
 import { useState } from "react";
 
-import SettingsItem from "../components/SettingsItem";
-import SettingsCard from "../components/SettingsCard";
-import PasswordCard from "../components/PasswordCard";
+import SettingsItem from "./SettingsItem";
+import SettingsCard from "./SettingsCard";
+import PasswordCard from "./PasswordCard";
 
 export default function SettingsPage() {
   const [settingsOpen, setSettingsOpen] = useState(""); // name | email | password

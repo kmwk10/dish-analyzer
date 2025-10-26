@@ -2,9 +2,9 @@ import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef } from "react";
 
-import ToggleCards from "../components/ToggleCards";
-import DishesList from "../components/DishesList";
-import DishCard from "../components/DishCard";
+import ToggleCards from "../../components/ToggleCards";
+import DishesList from "./DishesList";
+import DishCard from "./DishCard";
 
 export default function DishesPage() {
   const [selectedSection, setSelectedSection] = useState("Мои блюда");

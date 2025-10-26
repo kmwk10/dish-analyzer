@@ -1,10 +1,10 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import AuthPage from "./pages/AuthPage";
-import DishesPage from "./pages/DishesPage";
-import CreateDishPage from "./pages/CreateDishPage";
-import ProductsPage from "./pages/ProductsPage";
-import SettingsPage from "./pages/SettingsPage";
+import AuthPage from "./pages/Auth/AuthPage";
+import DishesPage from "./pages/Dishes/DishesPage";
+import CreateDishPage from "./pages/CreateDish/CreateDishPage";
+import ProductsPage from "./pages/Products/ProductsPage";
+import SettingsPage from "./pages/Settings/SettingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {

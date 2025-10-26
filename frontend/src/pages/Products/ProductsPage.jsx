@@ -2,9 +2,9 @@ import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef  } from "react";
 
-import ToggleCards from "../components/ToggleCards";
-import ProductsList from "../components/ProductsList";
-import ProductCard from "../components/ProductCard";
+import ToggleCards from "../../components/ToggleCards";
+import ProductsList from "./ProductsList";
+import ProductCard from "./ProductCard";
 
 export default function ProductsPage() {
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
