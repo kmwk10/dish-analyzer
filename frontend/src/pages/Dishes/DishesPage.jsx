@@ -18,6 +18,8 @@ export default function DishesPage() {
   });
 
   // Для тестирования
+  const product = {"name": "Творог 0,5% (Село зелёное)", "weight": 300}
+
   const dish = {
     "name": "Творожная запеканка",
     "weight": 480,
@@ -25,11 +27,14 @@ export default function DishesPage() {
     "protein": 15,
     "fat": 2.5,
     "carbs": 10,
-    "servings": 2
+    "servings": 2,
+    "products": [product, product, product],
+    "recipe": "Смешайте 2 яйца, творог и муку.\nПерелейте получившееся тесто в форму.\nПоставьте запекаться в духовку при 180 градусах на 45 минут."
   }
 
   const dish2 = {...dish}
   dish2["name"] = "Сырники"
+  dish2["recipe"] = ""
 
   const myDishes = []
   const allDishes = [dish, dish2]
