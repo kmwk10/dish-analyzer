@@ -1,6 +1,6 @@
 import { Card, Box, Input, Button, useOutsideClick, Flex } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { useState, useRef  } from "react";
+import { useState, useRef, useEffect  } from "react";
 import { useParams } from "react-router-dom";
 
 import EditorDishCard from "./EditorDishCard";
@@ -12,6 +12,8 @@ import ToggleCards from "../../components/ToggleCards";
 export default function EditorPage() {
   const { id } = useParams();
 
+  const isNew = id === "new";
+  const [dish, setDish] = useState({});
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
   const [editingProduct, setEditingProduct] = useState(null);
 
@@ -54,10 +56,28 @@ export default function EditorPage() {
   const allProducts = [product1, product2,  product3]
   const currentProducts = (selectedSection === "Мои продукты") ? myProducts : allProducts
 
+  useEffect(() => {
+    if (!isNew) {
+      // имитация загрузки существующего блюда
+      const fakeDish = {
+        "name": "Творожная запеканка",
+        "weight": 480,
+        "calories": 117,
+        "protein": 15,
+        "fat": 2.5,
+        "carbs": 10,
+        "servings": 2,
+        "products": [product1, product2, product3],
+        "recipe": "Смешайте 2 яйца, творог и муку.\nПерелейте получившееся тесто в форму.\nПоставьте запекаться в духовку при 180 градусах на 45 минут."
+      };
+      setDish(fakeDish);
+    }
+  }, [id]);
+
   return (
     <Flex height="92vh" p="0 3vw">
       <Box flex="1" mr="1.5vw" m="3vh">
-        <EditorDishCard/>
+        <EditorDishCard dish={dish} />
       </Box>
 
       <Box flex="2" ml="1.5vw">

@@ -2,11 +2,10 @@ import { Card, Flex, Text, IconButton, Box } from "@chakra-ui/react";
 import { EditIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
 
+import { formatNumber } from "../../utils/number";
+
 export default function DishItem({ dish, setSelectedDish }) {
   const navigate = useNavigate();
-
-  const formatNumber = (num) =>
-  parseFloat(num.toFixed(1)).toLocaleString("ru-RU", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
 
   const serving_weight = `${formatNumber(dish.weight / dish.servings)}`
 
