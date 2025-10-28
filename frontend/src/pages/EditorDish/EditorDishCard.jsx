@@ -35,7 +35,7 @@ export default function EditorDishCard() {
   );
 
   return (
-    <Card height="100%" >
+    <Card maxHeight="100%" >
       <CardBody overflowY="auto">
         <Text mb="0.5rem" fontSize="sm">Название</Text>
         <Input 
@@ -65,7 +65,7 @@ export default function EditorDishCard() {
           mb="1rem"
         />
 
-        <Select size='sm' mb="0.5rem" width="13vw">
+        <Select size='sm' mb="0.5rem" width="fit-content" >
           <option value='servings'>Количество порций</option>
           <option value='serving_weight'>Вес порции</option>
         </Select>
@@ -77,7 +77,7 @@ export default function EditorDishCard() {
           mb="1rem"
         />
 
-        <Select size='sm' mb="0.5rem" width="10vw">
+        <Select size='sm' mb="0.5rem" width="fit-content">
           <option value='per_100g'>На 100 грамм</option>
           <option value='per_serving'>На порцию</option>
           <option value='total'>На всё блюдо</option>

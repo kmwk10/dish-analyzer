@@ -1,7 +1,10 @@
 import { Card, Flex, Text, IconButton, Box } from "@chakra-ui/react";
 import { EditIcon } from "@chakra-ui/icons";
+import { useNavigate } from "react-router-dom";
 
 export default function DishItem({ dish, setSelectedDish }) {
+  const navigate = useNavigate();
+
   const formatNumber = (num) =>
   parseFloat(num.toFixed(1)).toLocaleString("ru-RU", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
 
@@ -39,6 +42,10 @@ export default function DishItem({ dish, setSelectedDish }) {
           <IconButton
             icon={<EditIcon />}
             variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation(); // Останавливаем клик, чтобы не сработал Box
+              navigate(`/dishes/editor/${dish.id}`);
+            }}
           />
         </Flex>
       </Card>

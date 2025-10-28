@@ -1,13 +1,17 @@
 import { Card, Box, Input, Button, useOutsideClick, Flex } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef  } from "react";
+import { useParams } from "react-router-dom";
 
 import EditorDishCard from "./EditorDishCard";
 import EditorProductsList from "./EditorProductsList";
 import ProductEditor from "../Products/ProductEditor";
 import ToggleCards from "../../components/ToggleCards";
 
+
 export default function EditorPage() {
+  const { id } = useParams();
+
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
   const [editingProduct, setEditingProduct] = useState(null);
 

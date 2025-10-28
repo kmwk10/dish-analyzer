@@ -1,12 +1,15 @@
 import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import ToggleCards from "../../components/ToggleCards";
 import DishesList from "./DishesList";
 import DishCard from "./DishCard";
 
 export default function DishesPage() {
+  const navigate = useNavigate();
+
   const [selectedSection, setSelectedSection] = useState("Мои блюда");
   const [selectedDish, setSelectedDish] = useState(null);
 
@@ -21,6 +24,7 @@ export default function DishesPage() {
   const product = {"name": "Творог 0,5% (Село зелёное)", "weight": 300}
 
   const dish = {
+    "id": 1,
     "name": "Творожная запеканка",
     "weight": 480,
     "calories": 117,
@@ -33,6 +37,7 @@ export default function DishesPage() {
   }
 
   const dish2 = {...dish}
+  dish2["id"] = 2
   dish2["name"] = "Сырники"
   dish2["recipe"] = ""
 
@@ -44,7 +49,13 @@ export default function DishesPage() {
     <Box margin="2vh 10vw">
       <ToggleCards option1={"Мои блюда"} option2={"Все блюда"} onChange={setSelectedSection}/>
       <Input size="lg" placeholder="Введите название блюда" background="white" marginBottom="3vh"/>
-      <Button size="md" leftIcon={<SmallAddIcon/>} height="3rem" colorScheme="purple" marginBottom="3vh">
+      <Button
+        size="md"
+        leftIcon={<SmallAddIcon/>}
+        height="3rem"
+        colorScheme="purple"
+        marginBottom="3vh"
+        onClick={() => navigate(`/dishes/editor/new`)}>
         Добавить блюдо
       </Button>
       {currentDishes.length > 0 ? (

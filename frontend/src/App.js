@@ -29,7 +29,7 @@ function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dishes" element={<DishesPage />} />
-        <Route path="/dishes/editor" element={<EditorDishPage />} />
+        <Route path="/dishes/editor/:id" element={<EditorDishPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/*" element={<NotFoundPage />} />
