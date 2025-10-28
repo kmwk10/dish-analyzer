@@ -7,12 +7,13 @@ export default function EditorProductItem({ product, setEditingProduct }) {
   return (
     <Box>
       <Card marginBottom="0.5rem">
-        <Flex alignItems="center" padding="0.8rem 1.5rem">
+        <Flex alignItems="center" padding="0.4rem 1rem">
           <Text>{product.name}</Text>
           <Text width="9vw" ml="auto">{nutrition_per_100g}</Text>
           <IconButton
             icon={<EditIcon />}
             variant="ghost"
+            mr="0.4rem"
             onClick={(e) => {
               e.stopPropagation(); // Останавливаем клик, чтобы не сработал Box
               setEditingProduct(product);

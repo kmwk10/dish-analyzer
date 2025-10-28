@@ -1,7 +1,8 @@
-import { Card, Box, Input, Button, useOutsideClick, Flex, CardBody } from "@chakra-ui/react";
+import { Card, Box, Input, Button, useOutsideClick, Flex } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef  } from "react";
 
+import EditorDishCard from "./EditorDishCard";
 import EditorProductsList from "./EditorProductsList";
 import ProductEditor from "../Products/ProductEditor";
 import ToggleCards from "../../components/ToggleCards";
@@ -52,11 +53,7 @@ export default function EditorPage() {
   return (
     <Flex height="92vh" p="0 3vw">
       <Box flex="1" mr="1.5vw" m="3vh">
-        <Card height="100%" >
-          <CardBody>
-
-          </CardBody>
-        </Card>
+        <EditorDishCard/>
       </Box>
 
       <Box flex="2" ml="1.5vw">
