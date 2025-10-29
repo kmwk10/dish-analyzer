@@ -104,13 +104,14 @@ export default function EditorDishCard({ dish, localProducts, productWeights, ha
         <Card fontSize="sm" backgroundColor="#ECECEC" padding="1rem" mb="1rem">
           {localProducts?.length > 0 ? (
             localProducts.map((product) => (
-              <Flex 
+              <Flex
                 marginBottom="0.5rem"
                 alignItems="center"
                 _last={{ mb: 0 }}
               >
                 <Card
                   key={product.id}
+                  width="100%"
                   padding="0.3rem 0.6rem"
                 >
                   <Flex>

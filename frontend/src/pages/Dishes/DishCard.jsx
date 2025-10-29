@@ -1,7 +1,10 @@
 import { Card, Box, Text, CardBody, Flex, Button, Select } from "@chakra-ui/react";
 import { forwardRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const DishCard = forwardRef(({ dish, onEdit }, ref) => {
+const DishCard = forwardRef(({ dish }, ref) => {
+  const navigate = useNavigate();
+
   const [mode, setMode] = useState("per_100g");
 
   const handleChange = (e) => {
@@ -113,7 +116,7 @@ const DishCard = forwardRef(({ dish, onEdit }, ref) => {
             </Card>
           )}
 
-          <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={onEdit}>Изменить</Button>
+          <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={() => navigate(`/dishes/editor/${dish.id}`)}>Изменить</Button>
           <Button size="sm" colorScheme="red" width="100%">Удалить</Button>
         </CardBody>
       </Card>
