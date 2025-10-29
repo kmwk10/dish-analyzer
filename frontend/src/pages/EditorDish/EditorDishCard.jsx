@@ -1,4 +1,4 @@
-import { Card, CardBody, Input, Text, InputGroup, InputRightElement, Textarea, Button } from "@chakra-ui/react";
+import { Card, CardBody, Input, Text, InputGroup, InputRightElement, Textarea, Button, Flex } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 
 import ServingSelect from "./ServingSelect";
@@ -21,6 +21,47 @@ export default function EditorDishCard({ dish }) {
   const [carbs, setCarbs] = useState("");
 
   const [recipe, setRecipe] = useState("");
+
+  const [productWeights, setProductWeights] = useState({});
+
+  // Для тестирования
+  const product1 = {
+    "id": 1,
+    "name": "Творог 0,5% (Село зелёное)",
+    "calories": 74,
+    "protein": 18,
+    "fat": 0.5,
+    "carbs": 3.3,
+    "used_in_dishes": ["Творожная запеканка", "Сырники", "Ватрушки"]
+  }
+
+    const product2 = {
+    "id": 2,
+    "name": "Манка (Шебекинская)",
+    "calories": 350,
+    "protein": 13,
+    "fat": 1,
+    "carbs": 72,
+    "used_in_dishes": ["Творожная запеканка"]
+  }
+
+  const products = [product1, product2]
+
+  useEffect(() => {
+    if (!dish?.products) return;
+    const weights = {};
+    dish.products.forEach(p => {
+      weights[p.id] = p.weight;
+    });
+    setProductWeights(weights);
+  }, [dish]);
+
+  const handleWeightChange = (id, value) => {
+    setProductWeights(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
 
   useEffect(() => {
     if (!dish) return;
@@ -86,7 +127,16 @@ export default function EditorDishCard({ dish }) {
                 padding="0.3rem 0.6rem"
                 _last={{ mb: 0 }}
               >
-                <Text>{product.name}</Text>
+                <Flex>
+                  <Text>{products.find(p => p.id === product.id)?.name}</Text>
+                  <InputGroup size="xs" width="20%" ml="auto">
+                    <Input
+                      value={productWeights[product.id] ?? ""}
+                      onChange={(e) => handleWeightChange(product.id, e.target.value)}
+                    />
+                    <InputRightElement children="г" ml="0.5rem" />
+                  </InputGroup>
+                </Flex>
               </Card>
             ))
           ) : (

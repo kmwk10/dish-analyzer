@@ -26,6 +26,7 @@ export default function EditorPage() {
 
   // Для тестирования
   const product1 = {
+    "id": 1,
     "name": "Творог 0,5% (Село зелёное)",
     "calories": 74,
     "protein": 18,
@@ -35,6 +36,7 @@ export default function EditorPage() {
   }
 
     const product2 = {
+    "id": 2,
     "name": "Манка (Шебекинская)",
     "calories": 350,
     "protein": 13,
@@ -44,12 +46,23 @@ export default function EditorPage() {
   }
 
   const product3 = {
+    "id": 3,
     "name": "Молоко 2,5% (Станция молочная)",
     "calories": 53,
     "protein": 3,
     "fat": 2.5,
     "carbs": 4.7,
     "used_in_dishes": []
+  }
+
+  const productInDish1 = {
+    "id": 1,
+    "weight": 300
+  }
+
+  const productInDish2 = {
+    "id": 2,
+    "weight": 100
   }
 
   const myProducts = [product1]
@@ -67,7 +80,7 @@ export default function EditorPage() {
         "fat": 2.5,
         "carbs": 10,
         "servings": 2,
-        "products": [product1, product2, product3],
+        "products": [productInDish1, productInDish2],
         "recipe": "Смешайте 2 яйца, творог и муку.\nПерелейте получившееся тесто в форму.\nПоставьте запекаться в духовку при 180 градусах на 45 минут."
       };
       setDish(fakeDish);
