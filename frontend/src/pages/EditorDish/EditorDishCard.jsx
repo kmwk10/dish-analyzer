@@ -125,6 +125,8 @@ export default function EditorDishCard({ dish }) {
           setFat={setFat}
           carbs={carbs}
           setCarbs={setCarbs}
+          weight={weight}
+          servings={servings}
         />
 
         <Text mb="0.5rem" fontSize="sm">Рецепт</Text>
