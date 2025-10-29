@@ -5,9 +5,9 @@ import ServingSelect from "./ServingSelect";
 import NutritionSelect from "./NutritionSelect";
 
 import { formatNumber } from "../../utils/number";
-import { CloseIcon, SmallCloseIcon } from "@chakra-ui/icons";
+import { CloseIcon } from "@chakra-ui/icons";
 
-export default function EditorDishCard({ dish }) {
+export default function EditorDishCard({ dish, localProducts, productWeights, handleWeightChange, handleRemoveProduct }) {
   const [name, setName] = useState("");
   const [weight, setWeight] = useState("");
 
@@ -22,9 +22,6 @@ export default function EditorDishCard({ dish }) {
   const [carbs, setCarbs] = useState("");
 
   const [recipe, setRecipe] = useState("");
-
-  const [localProducts, setLocalProducts] = useState([]);
-  const [productWeights, setProductWeights] = useState({});
 
   // Для тестирования
   const product1 = {
@@ -48,17 +45,6 @@ export default function EditorDishCard({ dish }) {
   }
 
   const products = [product1, product2]
-
-  useEffect(() => {
-      if (!dish?.products) return;
-      setLocalProducts(dish.products);
-
-      const weights = {};
-      dish.products.forEach(p => {
-        weights[p.id] = p.weight;
-      });
-      setProductWeights(weights);
-    }, [dish]);
 
   useEffect(() => {
     if (!dish) return;
@@ -101,19 +87,6 @@ export default function EditorDishCard({ dish }) {
       setServingWeight(newValue);
       setServings(formatNumber(newServings, 2));
     }
-  };
-
-  const handleWeightChange = (id, value) => {
-    setProductWeights(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleRemoveProduct = (id) => {
-    setLocalProducts(prev => prev.filter(p => p.id !== id));
-    setProductWeights(prev => {
-      const newWeights = { ...prev };
-      delete newWeights[id];
-      return newWeights;
-    });
   };
 
   return (

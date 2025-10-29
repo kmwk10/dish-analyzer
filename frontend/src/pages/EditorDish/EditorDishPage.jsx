@@ -87,10 +87,63 @@ export default function EditorPage() {
     }
   }, [id]);
 
+  const [localProducts, setLocalProducts] = useState([]);
+  const [productWeights, setProductWeights] = useState({});
+
+  useEffect(() => {
+    if (!dish?.products) return;
+    setLocalProducts(dish.products);
+
+    const weights = {};
+    dish.products.forEach(p => {
+      weights[p.id] = p.weight;
+    });
+    setProductWeights(weights);
+  }, [dish]);
+
+  const handleWeightChange = (id, value) => {
+    setProductWeights(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleRemoveProduct = (id) => {
+    setLocalProducts(prev => prev.filter(p => p.id !== id));
+    setProductWeights(prev => {
+      const newWeights = { ...prev };
+      delete newWeights[id];
+      return newWeights;
+    });
+  };
+
+  function handleAddProduct(product) {
+    setLocalProducts(prev => {
+      if (prev.some(p => p.id === product.id)) return prev;
+
+      return [
+        ...prev,
+        {
+          id: product.id,
+          name: product.name,
+          weight: "",
+        },
+      ];
+    });
+
+    setProductWeights(prev => ({
+      ...prev,
+      [product.id]: "",
+    }));
+  }
+
   return (
     <Flex height="92vh" p="0 3vw">
       <Box flex="1" mr="1.5vw" m="3vh">
-        <EditorDishCard dish={dish} />
+        <EditorDishCard
+          dish={dish}
+          localProducts={localProducts}
+          productWeights={productWeights}
+          handleWeightChange={handleWeightChange}
+          handleRemoveProduct={handleRemoveProduct}
+        />
       </Box>
 
       <Box flex="2" ml="1.5vw">
@@ -100,7 +153,11 @@ export default function EditorPage() {
           Добавить продукт
         </Button>
         {currentProducts.length > 0 ? (
-          <EditorProductsList products={currentProducts} setEditingProduct={setEditingProduct}/>
+          <EditorProductsList
+            products={currentProducts} 
+            setEditingProduct={setEditingProduct}
+            onAddProduct={handleAddProduct}
+          />
         ) : (
           <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
             Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.

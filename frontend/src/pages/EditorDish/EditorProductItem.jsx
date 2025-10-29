@@ -1,7 +1,7 @@
 import { Box, Card, Flex, Text, IconButton } from "@chakra-ui/react";
 import { EditIcon, AddIcon } from "@chakra-ui/icons";
 
-export default function EditorProductItem({ product, setEditingProduct }) {
+export default function EditorProductItem({ product, setEditingProduct, onAddProduct }) {
   const nutrition_per_100g = `${product.calories}/${product.protein}/${product.fat}/${product.carbs}`.replaceAll('.', ',');
   
   return (
@@ -22,6 +22,10 @@ export default function EditorProductItem({ product, setEditingProduct }) {
           <IconButton
             icon={<AddIcon color="purple.500" />}
             variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddProduct(product);
+            }}
           />
         </Flex>
       </Card>
