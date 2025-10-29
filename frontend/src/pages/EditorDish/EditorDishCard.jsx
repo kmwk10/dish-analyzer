@@ -1,10 +1,11 @@
-import { Card, CardBody, Input, Text, InputGroup, InputRightElement, Textarea, Button, Flex } from "@chakra-ui/react";
+import { Card, CardBody, Input, Text, InputGroup, InputRightElement, Textarea, Button, Flex, IconButton, CloseButton } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 
 import ServingSelect from "./ServingSelect";
 import NutritionSelect from "./NutritionSelect";
 
 import { formatNumber } from "../../utils/number";
+import { CloseIcon, SmallCloseIcon } from "@chakra-ui/icons";
 
 export default function EditorDishCard({ dish }) {
   const [name, setName] = useState("");
@@ -22,6 +23,7 @@ export default function EditorDishCard({ dish }) {
 
   const [recipe, setRecipe] = useState("");
 
+  const [localProducts, setLocalProducts] = useState([]);
   const [productWeights, setProductWeights] = useState({});
 
   // Для тестирования
@@ -48,20 +50,15 @@ export default function EditorDishCard({ dish }) {
   const products = [product1, product2]
 
   useEffect(() => {
-    if (!dish?.products) return;
-    const weights = {};
-    dish.products.forEach(p => {
-      weights[p.id] = p.weight;
-    });
-    setProductWeights(weights);
-  }, [dish]);
+      if (!dish?.products) return;
+      setLocalProducts(dish.products);
 
-  const handleWeightChange = (id, value) => {
-    setProductWeights(prev => ({
-      ...prev,
-      [id]: value
-    }));
-  };
+      const weights = {};
+      dish.products.forEach(p => {
+        weights[p.id] = p.weight;
+      });
+      setProductWeights(weights);
+    }, [dish]);
 
   useEffect(() => {
     if (!dish) return;
@@ -106,6 +103,19 @@ export default function EditorDishCard({ dish }) {
     }
   };
 
+  const handleWeightChange = (id, value) => {
+    setProductWeights(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleRemoveProduct = (id) => {
+    setLocalProducts(prev => prev.filter(p => p.id !== id));
+    setProductWeights(prev => {
+      const newWeights = { ...prev };
+      delete newWeights[id];
+      return newWeights;
+    });
+  };
+
   return (
     <Card maxHeight="100%" >
       <CardBody overflowY="auto">
@@ -119,25 +129,36 @@ export default function EditorDishCard({ dish }) {
         />
 
         <Card fontSize="sm" backgroundColor="#ECECEC" padding="1rem" mb="1rem">
-          {dish?.products?.length > 0 ? (
-            dish.products.map((product) => (
-              <Card
-                key={product.id}
+          {localProducts?.length > 0 ? (
+            localProducts.map((product) => (
+              <Flex 
                 marginBottom="0.5rem"
-                padding="0.3rem 0.6rem"
+                alignItems="center"
                 _last={{ mb: 0 }}
               >
-                <Flex>
-                  <Text>{products.find(p => p.id === product.id)?.name}</Text>
-                  <InputGroup size="xs" width="20%" ml="auto">
-                    <Input
-                      value={productWeights[product.id] ?? ""}
-                      onChange={(e) => handleWeightChange(product.id, e.target.value)}
-                    />
-                    <InputRightElement children="г" ml="0.5rem" />
-                  </InputGroup>
-                </Flex>
-              </Card>
+                <Card
+                  key={product.id}
+                  padding="0.3rem 0.6rem"
+                >
+                  <Flex>
+                    <Text>{products.find(p => p.id === product.id)?.name}</Text>
+                    <InputGroup size="xs" width="20%" ml="auto">
+                      <Input
+                        value={productWeights[product.id] ?? ""}
+                        onChange={(e) => handleWeightChange(product.id, e.target.value)}
+                      />
+                      <InputRightElement children="г" ml="0.5rem" />
+                    </InputGroup>
+                  </Flex>
+                </Card>
+                <IconButton
+                  icon={<CloseIcon/>}
+                  colorScheme="white"
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => handleRemoveProduct(product.id)}
+                />
+              </Flex>
             ))
           ) : (
             <Text textAlign="center">
