@@ -48,12 +48,20 @@ export default function EditorDishCard({ dish }) {
 
   const currentServingValue = servingMode === "servings" ? servings : servingWeight;
   
-  const handleServingInputChange = (e) => {
-    const value = e.target.value;
+  const handleServingSave = (newValue) => {
+    const w = parseFloat(weight.replace(",", "."));
+    const val = parseFloat(newValue.replace(",", "."));
+
+    if (!w || !val) return;
+
     if (servingMode === "servings") {
-      setServings(value);
+      const newServingWeight = w / val;
+      setServings(newValue);
+      setServingWeight(formatNumber(newServingWeight));
     } else {
-      setServingWeight(value);
+      const newServings = w / val;
+      setServingWeight(newValue);
+      setServings(formatNumber(newServings, 2));
     }
   };
 
@@ -103,7 +111,7 @@ export default function EditorDishCard({ dish }) {
           mode={servingMode}
           setMode={setServingMode}
           currentValue={currentServingValue}
-          handleServingInputChange={handleServingInputChange}
+          onSave={handleServingSave}
         />
 
         <NutritionSelect
