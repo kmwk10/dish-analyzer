@@ -56,12 +56,12 @@ DELETE /dish/{dish_id} — удаление блюда\
 GET /dish/favorites — список избранных блюд текущего пользователя
 
 ### Product
-GET /product/ — список всех продуктов\
-GET /product/{product_id} — получение продукта по ID\
-POST /product/ — создание продукта\
-PUT /product/{product_id} — обновление продукта\
-DELETE /product/{product_id} — удаление продукта\
-GET /product/favorites — список избранных продуктов текущего пользователя
+POST /products/ — создание продукта\
+GET /products/{product_id} — получение продукта по ID\
+PUT /products/{product_id} — обновление продукта\
+DELETE /products/{product_id} — удаление продукта\
+GET /products/ — список всех продуктов\
+GET /products/search/?query=… — поиск продуктов по названию
 
 ### User
 GET /user/ — список всех пользователей\
