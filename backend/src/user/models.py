@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, DateTime, ForeignKey, text, UniqueConstraint, Float
+from sqlalchemy import String, DateTime, ForeignKey, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base

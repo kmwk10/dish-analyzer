@@ -1,22 +1,96 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Depends
+from typing import List
+from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
 
-router = APIRouter(
-    prefix="/user",
-    tags=["User"]
-)
+from ..database import get_db
+from ..dish.schemas import DishOut
+from ..product.schemas import ProductOut
 
-@router.get("/{user_id}")
-def get_user(user_id: int):
-    return {"message": f"stub: get user {user_id}"}
+from .schemas import UserUpdate, UserOut
+from .service import UserService
 
-@router.post("/")
-def create_user():
-    return {"message": "stub: create user"}
+router = APIRouter(prefix="/user", tags=["User"])
 
-@router.put("/{user_id}")
-def update_user(user_id: int):
-    return {"message": f"stub: update user {user_id}"}
 
-@router.delete("/{user_id}")
-def delete_user(user_id: int):
-    return {"message": f"stub: delete user {user_id}"}
+@router.get("/{user_id}", response_model=UserOut)
+async def get_user_endpoint(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    user_obj = await UserService.get_user(db, user_id)
+    if not user_obj:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user_obj
+
+@router.put("/{user_id}", response_model=UserOut)
+async def update_user_endpoint(
+    user_id: UUID,
+    user: UserUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    updated = await UserService.update_user(db, user_id, user.model_dump(exclude_unset=True))
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found")
+    return updated
+
+@router.delete("/{user_id}", response_model=dict)
+async def delete_user_endpoint(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    deleted = await UserService.delete_user(db, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"detail": "User deleted"}
+
+
+@router.get("/{user_id}/favorites/dishes/", response_model=List[DishOut])
+async def get_favorite_dishes_endpoint(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    return await UserService.get_favorite_dishes(db, user_id)
+
+@router.get("/{user_id}/favorites/products/", response_model=List[ProductOut])
+async def get_favorite_products_endpoint(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    return await UserService.get_favorite_products(db, user_id)
+
+@router.post("/{user_id}/favorites/dishes/{dish_id}", response_model=dict)
+async def add_favorite_dish_endpoint(
+    user_id: UUID,
+    dish_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    await UserService.add_favorite_dish(db, user_id, dish_id)
+    return {"detail": "Dish added to favorites"}
+
+@router.post("/{user_id}/favorites/products/{product_id}", response_model=dict)
+async def add_favorite_product_endpoint(
+    user_id: UUID,
+    product_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    await UserService.add_favorite_product(db, user_id, product_id)
+    return {"detail": "Product added to favorites"}
+
+@router.delete("/{user_id}/favorites/dishes/{dish_id}", response_model=dict)
+async def remove_favorite_dish_endpoint(
+    user_id: UUID,
+    dish_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    await UserService.remove_favorite_dish(db, user_id, dish_id)
+    return {"detail": "Dish removed from favorites"}
+
+@router.delete("/{user_id}/favorites/products/{product_id}", response_model=dict)
+async def remove_favorite_product_endpoint(
+    user_id: UUID,
+    product_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    await UserService.remove_favorite_product(db, user_id, product_id)
+    return {"detail": "Product removed from favorites"}

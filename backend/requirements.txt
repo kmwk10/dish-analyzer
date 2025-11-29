@@ -4,3 +4,4 @@ python-dotenv
 SQLAlchemy
 asyncpg
 alembic
+pydantic[email]

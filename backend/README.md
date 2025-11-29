@@ -67,8 +67,13 @@ GET /products/ — список всех продуктов\
 GET /products/search/?query=… — поиск продуктов по названию
 
 ### User
-GET /user/ — список всех пользователей\
-GET /user/{user_id} — получение пользователя по ID\
 POST /user/ — создание пользователя\
+GET /user/{user_id} — получение пользователя по ID\
 PUT /user/{user_id} — обновление пользователя\
-DELETE /user/{user_id} — удаление пользователя
+DELETE /user/{user_id} — удаление пользователя\
+GET /user/{user_id}/favorites/dishes/ — список избранных блюд\
+POST /user/{user_id}/favorites/dishes/{dish_id} — добавить блюдо в избранное\
+DELETE /user/{user_id}/favorites/dishes/{dish_id} — убрать блюдо из избранного\
+GET /user/{user_id}/favorites/products/ — список избранных продуктов\
+POST /user/{user_id}/favorites/products/{product_id} — добавить продукт в избранное\
+DELETE /user/{user_id}/favorites/products/{product_id} — убрать продукт из избранного

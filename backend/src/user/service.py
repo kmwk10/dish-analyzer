@@ -4,7 +4,10 @@ from uuid import UUID
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import User, FavoriteDish, FavoriteProduct, Dish, Product
+from ..dish import Dish
+from ..product import Product
+
+from .models import User, FavoriteDish, FavoriteProduct
 
 
 class UserService:
