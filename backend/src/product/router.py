@@ -8,7 +8,7 @@ from ..database import get_db
 from .schemas import ProductCreate, ProductUpdate, ProductOut
 from .service import ProductService
 
-router = APIRouter(prefix="/products", tags=["products"])
+router = APIRouter(prefix="/product", tags=["Product"])
 
 @router.post("/", response_model=ProductOut)
 async def create_product_endpoint(

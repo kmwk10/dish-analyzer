@@ -48,12 +48,15 @@ POST /auth/login — вход пользователя\
 POST /auth/logout — выход пользователя
 
 ### Dish
-GET /dish/ — список всех блюд\
-GET /dish/{dish_id} — получение блюда по ID\
 POST /dish/ — создание блюда\
+GET /dish/{dish_id} — получение блюда по ID\
 PUT /dish/{dish_id} — обновление блюда\
 DELETE /dish/{dish_id} — удаление блюда\
-GET /dish/favorites — список избранных блюд текущего пользователя
+GET /dish/ — список всех блюд\
+GET /dish/search/?query=… — поиск блюд по названию\
+GET /dish/{dish_id}/products/ — список продуктов в блюде\
+POST /dish/{dish_id}/products/ — добавление продуктов в блюдо\
+PUT /dish/{dish_id}/products/ — обновление продуктов блюда
 
 ### Product
 POST /products/ — создание продукта\

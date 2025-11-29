@@ -52,3 +52,7 @@ class DishProductOut(DishProductBase):
     model_config = {
         "from_attributes": True
     }
+
+class DishProductIn(BaseModel):
+    product_id: UUID
+    weight: float

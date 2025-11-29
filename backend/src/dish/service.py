@@ -64,7 +64,7 @@ class DishService:
         items: List[dict]
     ):
         objects = [
-            DishProduct(dish_id=dish_id, product_id=item["product_id"], weight=item["weight"])
+            DishProduct(dish_id=dish_id, product_id=item.product_id, weight=item.weight)
             for item in items
         ]
         db.add_all(objects)
@@ -80,7 +80,7 @@ class DishService:
         await db.commit()
 
         objects = [
-            DishProduct(dish_id=dish_id, product_id=item["product_id"], weight=item["weight"])
+            DishProduct(dish_id=dish_id, product_id=item.product_id, weight=item.weight)
             for item in items
         ]
         db.add_all(objects)
