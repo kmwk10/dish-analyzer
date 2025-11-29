@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
@@ -20,9 +20,9 @@ class UserOut(UserBase):
     id: UUID
     created_at: datetime
 
-    class Config:
-        orm_mode = True
-
+    model_config = {
+        "from_attributes": True
+    }
 
 class FavoriteProductBase(BaseModel):
     user_id: UUID
@@ -32,9 +32,9 @@ class FavoriteProductCreate(FavoriteProductBase):
     pass
 
 class FavoriteProductOut(FavoriteProductBase):
-    class Config:
-        orm_mode = True
-
+    model_config = {
+        "from_attributes": True
+    }
 
 class FavoriteDishBase(BaseModel):
     user_id: UUID
@@ -44,5 +44,6 @@ class FavoriteDishCreate(FavoriteDishBase):
     pass
 
 class FavoriteDishOut(FavoriteDishBase):
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }

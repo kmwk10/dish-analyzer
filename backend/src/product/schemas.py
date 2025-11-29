@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
+
 class ProductBase(BaseModel):
     name: str
     calories: float
@@ -25,5 +26,6 @@ class ProductOut(ProductBase):
     created_at: datetime
     created_by: Optional[UUID]
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }

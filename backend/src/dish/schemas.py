@@ -32,8 +32,9 @@ class DishOut(DishBase):
     created_at: datetime
     created_by: Optional[UUID]
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class DishProductBase(BaseModel):
@@ -48,5 +49,6 @@ class DishProductUpdate(BaseModel):
     weight: Optional[float] = None
 
 class DishProductOut(DishProductBase):
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
