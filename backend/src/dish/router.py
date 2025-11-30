@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
+from ..dependencies import get_current_user_id
 
 from .schemas import DishCreate, DishUpdate, DishOut, DishProductOut, DishProductIn
 from .service import DishService
@@ -14,9 +15,12 @@ router = APIRouter(prefix="/dish", tags=["Dish"])
 @router.post("/", response_model=DishOut)
 async def create_dish_endpoint(
     dish: DishCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
-    return await DishService.create_dish(db, dish.model_dump(exclude_unset=True))
+    dish_data = dish.model_dump(exclude_unset=True)
+    dish_data["created_by"] = current_user
+    return await DishService.create_dish(db, dish_data)
 
 @router.get("/{dish_id}", response_model=DishOut)
 async def get_dish_endpoint(
@@ -32,7 +36,8 @@ async def get_dish_endpoint(
 async def update_dish_endpoint(
     dish_id: UUID,
     dish: DishUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
     updated = await DishService.update_dish(db, dish_id, dish.model_dump(exclude_unset=True))
     if not updated:
@@ -42,7 +47,8 @@ async def update_dish_endpoint(
 @router.delete("/{dish_id}", response_model=dict)
 async def delete_dish_endpoint(
     dish_id: UUID,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
     deleted = await DishService.delete_dish(db, dish_id)
     if not deleted:
@@ -75,7 +81,8 @@ async def list_products_in_dish_endpoint(
 async def add_products_to_dish_endpoint(
     dish_id: UUID,
     product_ids: List[DishProductIn],
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
     await DishService.add_products_to_dish(db, dish_id, product_ids)
     return {"detail": "Products added to dish"}
@@ -84,7 +91,8 @@ async def add_products_to_dish_endpoint(
 async def update_dish_products_endpoint(
     dish_id: UUID,
     product_ids: List[DishProductIn],
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
     await DishService.update_dish_products(db, dish_id, product_ids)
     return {"detail": "Dish products updated"}

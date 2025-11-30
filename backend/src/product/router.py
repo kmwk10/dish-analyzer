@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
+from ..dependencies import get_current_user_id
 
 from .schemas import ProductCreate, ProductUpdate, ProductOut
 from .service import ProductService
@@ -13,9 +14,12 @@ router = APIRouter(prefix="/product", tags=["Product"])
 @router.post("/", response_model=ProductOut)
 async def create_product_endpoint(
     product: ProductCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
-    return await ProductService.create_product(db, product.model_dump(exclude_unset=True))
+    product_data = product.model_dump(exclude_unset=True)
+    product_data["created_by"] = current_user
+    return await ProductService.create_product(db, product_data)
 
 @router.get("/{product_id}", response_model=ProductOut)
 async def get_product_endpoint(
@@ -31,7 +35,8 @@ async def get_product_endpoint(
 async def update_product_endpoint(
     product_id: UUID,
     product: ProductUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
     updated = await ProductService.update_product(db, product_id, product.model_dump(exclude_unset=True))
     if not updated:
@@ -41,7 +46,8 @@ async def update_product_endpoint(
 @router.delete("/{product_id}", response_model=dict)
 async def delete_product_endpoint(
     product_id: UUID,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: UUID = Depends(get_current_user_id)
 ):
     deleted = await ProductService.delete_product(db, product_id)
     if not deleted:

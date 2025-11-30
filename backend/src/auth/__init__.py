@@ -1,5 +1,5 @@
-from src.auth.router import router
+from .router import router
 
 __all__ = [
-    "router",
+    "router"
 ]
