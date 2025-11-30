@@ -11,7 +11,3 @@ app.include_router(auth_router)
 app.include_router(dish_router)
 app.include_router(product_router)
 app.include_router(user_router)
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}

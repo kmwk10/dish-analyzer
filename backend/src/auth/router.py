@@ -9,7 +9,7 @@ from ..dependencies import get_current_user_id
 from .schemas import UserLogin, TokenPair
 from .service import AuthService
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/register", response_model=TokenPair)
