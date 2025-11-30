@@ -16,28 +16,29 @@ backend/
     ├── auth/              # Авторизация
     │   ├── __init__.py
     │   ├── router.py      # Эндпоинты
-    │   ├── service.py     # Бизнес-логика
-    │   └── security.py    # Функции безопасности
+    │   ├── schemas.py     # Pydantic-схемы
+    │   ├── security.py    # Функции безопасности
+    │   └── service.py     # Бизнес-логика
     │
     ├── dish/              # Блюда
     │   ├── __init__.py
     │   ├── models.py      # SQL-модели
-    │   ├── schemas.py     # Pydantic-схемы
     │   ├── router.py      # Эндпоинты
+    │   ├── schemas.py     # Pydantic-схемы
     │   └── service.py     # Бизнес-логика
     │
     ├── product/           # Продукты
     │   ├── __init__.py
     │   ├── models.py
-    │   ├── schemas.py 
     │   ├── router.py 
+    │   ├── schemas.py 
     │   └── service.py 
     │
     └── user/              # Пользователи
         ├── __init__.py
         ├── models.py
-        ├── schemas.py
         ├── router.py
+        ├── schemas.py
         └── service.py
 ```
 
