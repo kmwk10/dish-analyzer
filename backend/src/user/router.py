@@ -4,8 +4,8 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
-from ..dish.schemas import DishOut
-from ..product.schemas import ProductOut
+from ..dish import DishOut
+from ..product import ProductOut
 
 from .schemas import UserUpdate, UserOut
 from .service import UserService

@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 
-from src.auth.router import router as auth_router
-from src.dish.router import router as dish_router
-from src.product.router import router as product_router
-from src.user.router import router as user_router
+from src.auth import router as auth_router
+from src.dish import router as dish_router
+from src.product import router as product_router
+from src.user import router as user_router
  
 app = FastAPI(title="KBJU Project API")
 

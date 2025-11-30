@@ -1,9 +1,10 @@
 from .router import router
-from .models import User, FavoriteProduct, FavoriteDish
+from .models import User
+from .schemas import UserCreate, UserOut
 
 __all__ = [
     "router",
     "User",
-    "FavoriteProduct",
-    "FavoriteDish"
+    "UserCreate",
+    "UserOut"
 ]

@@ -5,9 +5,9 @@ from sqlalchemy import create_engine, pool
 from alembic import context
 
 from src.database import Base
-from src.dish import Dish, DishProduct 
-from src.product import Product
-from src.user import User, FavoriteProduct, FavoriteDish
+from src.dish.models import Dish, DishProduct 
+from src.product.models import Product
+from src.user.models import User, FavoriteProduct, FavoriteDish
 
 
 load_dotenv()
