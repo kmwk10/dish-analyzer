@@ -43,9 +43,10 @@ backend/
 
 ## API
 ### Auth
-POST /auth/register — регистрация пользователя\
-POST /auth/login — вход пользователя\
-POST /auth/logout — выход пользователя
+POST /auth/register — регистрация пользователя и выдача пары токенов\
+POST /auth/login — аутентификация пользователя и выдача пары токенов\
+GET  /auth/me — получение информации о текущем пользователе (по access-токену)\
+POST /auth/refresh — обновление access-токена по refresh-токену
 
 ### Dish
 POST /dish/ — создание блюда\
