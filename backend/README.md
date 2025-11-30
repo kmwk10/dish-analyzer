@@ -11,6 +11,7 @@ backend/
     ├── __init__.py
     ├── config.py          # Конфигурации проекта
     ├── database.py        # Подключение к базе данных (SQLAlchemy)
+    ├── dependencies.py    # Зависимости FastAPI
     ├── main.py            # Точка входа FastAPI-приложения
     │
     ├── auth/              # Авторизация

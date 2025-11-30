@@ -6,12 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from ..user import User
+from ..dependencies import decode_token
+
 from .security import (
     hash_password,
     verify_password,
     create_access_token,
     create_refresh_token,
-    decode_token,
 )
 
 

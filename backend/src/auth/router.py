@@ -4,10 +4,10 @@ from uuid import UUID
 
 from ..database import get_db
 from ..user import UserCreate, UserOut
+from ..dependencies import get_current_user_id
 
 from .schemas import UserLogin, TokenPair
 from .service import AuthService
-from .security import get_current_user_id
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
