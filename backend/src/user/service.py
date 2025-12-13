@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..auth.security import verify_password, hash_password
 from ..dish import Dish
 from ..product import Product
 
@@ -48,6 +49,19 @@ class UserService:
             return False
         await db.delete(user)
         await db.commit()
+        return True
+
+
+    @staticmethod
+    async def update_password(db: AsyncSession, user_id: UUID, old_password: str, new_password: str) -> bool:
+        user = await UserService.get_user(db, user_id)
+        if not user:
+            return False
+        if not verify_password(old_password, user.hashed_password):
+            return False
+        user.hashed_password = hash_password(new_password)
+        await db.commit()
+        await db.refresh(user)
         return True
 
 
