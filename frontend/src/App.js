@@ -11,15 +11,19 @@ function App() {
   const location = useLocation();
   const hideNavbar = location.pathname === "/auth";
 
-  function HomeRedirect() {
-    // const isAuthenticated = localStorage.getItem("token");
-    const isAuthenticated = true; // ! заменить на настоящую проверку !
+  function useAuth() {
+    const accessToken = localStorage.getItem("access_token");
+    return !!accessToken;
+  }
 
-    return isAuthenticated ? (
-      <Navigate to="/dishes" replace />
-    ) : (
-      <Navigate to="/auth" replace />
-    );
+  function HomeRedirect() {
+    const isAuthenticated = useAuth();
+    return isAuthenticated ? <Navigate to="/dishes" replace /> : <Navigate to="/auth" replace />;
+  }
+
+  function PrivateRoute({ children }) {
+    const isAuthenticated = useAuth();
+    return isAuthenticated ? children : <Navigate to="/auth" replace />;
   }
 
   return (
@@ -28,10 +32,10 @@ function App() {
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dishes" element={<DishesPage />} />
-        <Route path="/dishes/editor/:id" element={<EditorDishPage />} />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/dishes" element={<PrivateRoute><DishesPage /></PrivateRoute>} />
+        <Route path="/dishes/editor/:id" element={<PrivateRoute><EditorDishPage /></PrivateRoute>} />
+        <Route path="/products" element={<PrivateRoute><ProductsPage /></PrivateRoute>} />
+        <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>
