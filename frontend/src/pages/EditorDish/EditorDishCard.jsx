@@ -7,7 +7,7 @@ import NutritionSelect from "./NutritionSelect";
 import { formatNumber } from "../../utils/number";
 import { CloseIcon } from "@chakra-ui/icons";
 
-export default function EditorDishCard({ dish, localProducts, productWeights, handleWeightChange, handleRemoveProduct }) {
+export default function EditorDishCard({ dish, localProducts, productWeights, handleWeightChange, handleRemoveProduct, onSave, onDelete }) {
   const [name, setName] = useState("");
   const [weight, setWeight] = useState("");
 
@@ -22,29 +22,6 @@ export default function EditorDishCard({ dish, localProducts, productWeights, ha
   const [carbs, setCarbs] = useState("");
 
   const [recipe, setRecipe] = useState("");
-
-  // Для тестирования
-  const product1 = {
-    "id": 1,
-    "name": "Творог 0,5% (Село зелёное)",
-    "calories": 74,
-    "protein": 18,
-    "fat": 0.5,
-    "carbs": 3.3,
-    "used_in_dishes": ["Творожная запеканка", "Сырники", "Ватрушки"]
-  }
-
-    const product2 = {
-    "id": 2,
-    "name": "Манка (Шебекинская)",
-    "calories": 350,
-    "protein": 13,
-    "fat": 1,
-    "carbs": 72,
-    "used_in_dishes": ["Творожная запеканка"]
-  }
-
-  const products = [product1, product2]
 
   useEffect(() => {
     if (!dish) return;
@@ -89,6 +66,23 @@ export default function EditorDishCard({ dish, localProducts, productWeights, ha
     }
   };
 
+  const handleSaveClick = () => {
+    onSave({
+      name,
+      weight,
+      servings,
+      calories,
+      protein,
+      fat,
+      carbs,
+      recipe,
+      products: localProducts.map(p => ({
+        product_id: p.id,
+        weight: productWeights[p.id],
+      })),
+    });
+  };
+
   return (
     <Card maxHeight="100%" >
       <CardBody overflowY="auto">
@@ -115,7 +109,7 @@ export default function EditorDishCard({ dish, localProducts, productWeights, ha
                   padding="0.3rem 0.6rem"
                 >
                   <Flex>
-                    <Text>{products.find(p => p.id === product.id)?.name}</Text>
+                    <Text>{product.name}</Text>
                     <InputGroup size="xs" width="20%" ml="auto">
                       <Input
                         value={productWeights[product.id] ?? ""}
@@ -183,7 +177,7 @@ export default function EditorDishCard({ dish, localProducts, productWeights, ha
           onChange={(e) => setRecipe(e.target.value)}
         />
 
-        <Button size="sm" colorScheme="purple" width="100%" mb="1rem">Сохранить</Button>
+        <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={handleSaveClick}>Сохранить</Button>
         <Button size="sm" colorScheme="red" width="100%">Удалить</Button>
       </CardBody>
     </Card>

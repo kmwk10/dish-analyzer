@@ -1,7 +1,7 @@
 import { Card, Box, Input, Button, useOutsideClick, Flex } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef, useEffect  } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { getUserInfo } from "../../api/user";
 import { toNumber } from "../../utils/number";
@@ -12,6 +12,10 @@ import {
   removeFavoriteProduct,
   saveProduct
 } from "../../api/products";
+import { 
+  saveDish,
+  updateDishProducts
+} from "../../api/dishes";
 
 import EditorDishCard from "./EditorDishCard";
 import EditorProductsList from "./EditorProductsList";
@@ -20,6 +24,7 @@ import ToggleCards from "../../components/ToggleCards";
 
 
 export default function EditorPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
   
   const isNew = id === "new";
@@ -191,6 +196,49 @@ export default function EditorPage() {
     }));
   }
 
+  async function handleSave(formData) {
+    try {
+      const dishPayload = {
+        id: dish?.id,
+        created_by: dish?.created_by,
+
+        name: formData.name,
+        recipe: formData.recipe || null,
+
+        weight: toNumber(formData.weight),
+        servings: formData.servings ? toNumber(formData.servings) : null,
+
+        calories: toNumber(formData.calories),
+        protein: toNumber(formData.protein),
+        fat: toNumber(formData.fat),
+        carbs: toNumber(formData.carbs),
+      };
+
+      const savedDish = await saveDish(dishPayload, currentUserId);
+
+      const productsPayload = localProducts.map(p => ({
+        product_id: p.id,
+        weight: toNumber(productWeights[p.id]),
+      }));
+
+      await updateDishProducts(savedDish.id, productsPayload);
+
+      setDish({
+        ...savedDish,
+        products: localProducts.map(p => ({
+          id: p.id,
+          weight: productWeights[p.id],
+          name: p.name,
+        })),
+      });
+      
+      navigate("/dishes");
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
     <Flex height="92vh" p="0 3vw">
       <Box flex="1" mr="1.5vw" m="3vh">
@@ -200,6 +248,7 @@ export default function EditorPage() {
           productWeights={productWeights}
           handleWeightChange={handleWeightChange}
           handleRemoveProduct={handleRemoveProduct}
+          onSave={handleSave}
         />
       </Box>
 

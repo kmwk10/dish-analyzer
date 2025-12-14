@@ -15,7 +15,7 @@ class DishBase(BaseModel):
     recipe: Optional[str] = None
 
 class DishCreate(DishBase):
-    created_by: Optional[UUID]
+    created_by: Optional[UUID] = None
 
 class DishUpdate(BaseModel):
     name: Optional[str] = None
@@ -26,6 +26,7 @@ class DishUpdate(BaseModel):
     fat: Optional[float] = None
     carbs: Optional[float] = None
     recipe: Optional[str] = None
+    created_by: Optional[UUID] = None
 
 class DishOut(DishBase):
     id: UUID
