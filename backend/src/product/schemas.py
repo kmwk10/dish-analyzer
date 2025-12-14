@@ -12,7 +12,7 @@ class ProductBase(BaseModel):
     carbs: float
 
 class ProductCreate(ProductBase):
-    created_by: Optional[UUID]
+    created_by: Optional[UUID] = None  
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -20,6 +20,7 @@ class ProductUpdate(BaseModel):
     protein: Optional[float] = None
     fat: Optional[float] = None
     carbs: Optional[float] = None
+    created_by: Optional[UUID] = None
 
 class ProductOut(ProductBase):
     id: UUID
