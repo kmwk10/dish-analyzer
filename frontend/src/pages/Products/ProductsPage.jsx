@@ -186,6 +186,7 @@ export default function ProductsPage() {
             setEditingProduct(selectedProduct);
             setSelectedProduct(null);
           }}
+          onDelete={handleDeleteProduct}
         />
       )}
       {editingProduct && (
