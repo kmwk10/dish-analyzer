@@ -1,7 +1,24 @@
 import { Card, Box, Input, Button, useOutsideClick, Flex } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef, useEffect  } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+
+import { getUserInfo } from "../../api/user";
+import { toNumber } from "../../utils/number";
+import {
+  listProducts,
+  searchProducts,
+  getFavoriteProducts,
+  removeFavoriteProduct,
+  saveProduct
+} from "../../api/products";
+import {
+  getDish,
+  getDishProducts,
+  saveDish,
+  updateDishProducts,
+  removeFavoriteDish
+} from "../../api/dishes";
 
 import EditorDishCard from "./EditorDishCard";
 import EditorProductsList from "./EditorProductsList";
@@ -10,96 +27,130 @@ import ToggleCards from "../../components/ToggleCards";
 
 
 export default function EditorPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
-
+  
   const isNew = id === "new";
+  const [products, setProducts] = useState([]);
+  const [favoriteProducts, setFavoriteProducts] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [dish, setDish] = useState({});
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
   const [editingProduct, setEditingProduct] = useState(null);
+  const [localProducts, setLocalProducts] = useState([]);
+  const [productWeights, setProductWeights] = useState({});
 
   const editRef = useRef();
+
+  useEffect(() => {
+    async function fetchUserAndFavorites() {
+      const user = await getUserInfo();
+      setCurrentUserId(user.id);
+
+      const favProducts = await getFavoriteProducts();
+      setFavoriteProducts(favProducts);
+    }
+    fetchUserAndFavorites();
+  }, []);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      if (selectedSection === "Мои продукты") {
+        setProducts(favoriteProducts);
+      } else {
+        const all = await listProducts();
+        setProducts(all);
+      }
+    }
+    fetchProducts();
+  }, [selectedSection, favoriteProducts]);
 
   useOutsideClick({
     ref: editRef,
     handler: () => setEditingProduct(null),
   });
 
-  // Для тестирования
-  const product1 = {
-    "id": 1,
-    "name": "Творог 0,5% (Село зелёное)",
-    "calories": 74,
-    "protein": 18,
-    "fat": 0.5,
-    "carbs": 3.3,
-    "used_in_dishes": ["Творожная запеканка", "Сырники", "Ватрушки"]
+  async function handleSaveProduct(product) {
+    if (!product) {
+      setEditingProduct(null);
+      return;
+    }
+
+    try {
+      const payload = {
+        ...product,
+        calories: toNumber(product.calories),
+        protein: toNumber(product.protein),
+        fat: toNumber(product.fat),
+        carbs: toNumber(product.carbs),
+      };
+
+      const savedProduct = await saveProduct(payload, currentUserId);
+
+      setFavoriteProducts(prev => {
+        const filtered = prev.filter(p => p.id !== savedProduct.id && p.id !== product.id);
+        return [...filtered, savedProduct];
+      });
+
+      setProducts(prev => {
+        const filtered = prev.filter(p => p.id !== product.id);
+        return [...filtered, savedProduct];
+      });
+
+      setEditingProduct(null);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-    const product2 = {
-    "id": 2,
-    "name": "Манка (Шебекинская)",
-    "calories": 350,
-    "protein": 13,
-    "fat": 1,
-    "carbs": 72,
-    "used_in_dishes": ["Творожная запеканка"]
-  }
+  async function handleDeleteProduct(productId) {
+    try {
+      await removeFavoriteProduct(productId);
+      setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
 
-  const product3 = {
-    "id": 3,
-    "name": "Молоко 2,5% (Станция молочная)",
-    "calories": 53,
-    "protein": 3,
-    "fat": 2.5,
-    "carbs": 4.7,
-    "used_in_dishes": []
-  }
+      if (editingProduct?.id === productId) {
+        setEditingProduct(null);
+      }
 
-  const productInDish1 = {
-    "id": 1,
-    "weight": 300
+    } catch (err) {
+      console.error(err);
+    }
   }
-
-  const productInDish2 = {
-    "id": 2,
-    "weight": 100
-  }
-
-  const myProducts = [product1]
-  const allProducts = [product1, product2,  product3]
-  const currentProducts = (selectedSection === "Мои продукты") ? myProducts : allProducts
 
   useEffect(() => {
     if (!isNew) {
-      // имитация загрузки существующего блюда
-      const fakeDish = {
-        "name": "Творожная запеканка",
-        "weight": 480,
-        "calories": 117,
-        "protein": 15,
-        "fat": 2.5,
-        "carbs": 10,
-        "servings": 2,
-        "products": [productInDish1, productInDish2],
-        "recipe": "Смешайте 2 яйца, творог и муку.\nПерелейте получившееся тесто в форму.\nПоставьте запекаться в духовку при 180 градусах на 45 минут."
-      };
-      setDish(fakeDish);
+      async function fetchDish() {
+        try {
+          const data = await getDish(id);
+          const dishProducts = await getDishProducts(id);
+          const allProducts = await listProducts();
+
+          const localProds = dishProducts.map(p => {
+            const productInfo = allProducts.find(prod => prod.id === p.product_id);
+            return {
+              id: p.product_id,
+              name: productInfo?.name,
+              weight: p.weight,
+            };
+          });
+
+          const weights = {};
+          localProds.forEach(p => {
+            weights[p.id] = p.weight;
+          });
+
+          setDish({ ...data, products: localProds });
+          setLocalProducts(localProds);
+          setProductWeights(weights);
+        } catch (err) {
+          console.error("Не удалось загрузить блюдо", err);
+        }
+      }
+
+      fetchDish();
     }
-  }, [id]);
-
-  const [localProducts, setLocalProducts] = useState([]);
-  const [productWeights, setProductWeights] = useState({});
-
-  useEffect(() => {
-    if (!dish?.products) return;
-    setLocalProducts(dish.products);
-
-    const weights = {};
-    dish.products.forEach(p => {
-      weights[p.id] = p.weight;
-    });
-    setProductWeights(weights);
-  }, [dish]);
+  }, [id, isNew]);
 
   const handleWeightChange = (id, value) => {
     setProductWeights(prev => ({ ...prev, [id]: value }));
@@ -134,6 +185,58 @@ export default function EditorPage() {
     }));
   }
 
+  async function handleSave(formData) {
+    try {
+      const dishPayload = {
+        id: dish?.id,
+        created_by: dish?.created_by,
+
+        name: formData.name,
+        recipe: formData.recipe || null,
+
+        weight: toNumber(formData.weight),
+        servings: formData.servings ? toNumber(formData.servings) : null,
+
+        calories: toNumber(formData.calories),
+        protein: toNumber(formData.protein),
+        fat: toNumber(formData.fat),
+        carbs: toNumber(formData.carbs),
+      };
+
+      const savedDish = await saveDish(dishPayload, currentUserId);
+
+      const productsPayload = localProducts.map(p => ({
+        product_id: p.id,
+        weight: toNumber(productWeights[p.id]),
+      }));
+
+      await updateDishProducts(savedDish.id, productsPayload);
+
+      setDish({
+        ...savedDish,
+        products: localProducts.map(p => ({
+          id: p.id,
+          weight: productWeights[p.id],
+          name: p.name,
+        })),
+      });
+      navigate("/dishes");
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const handleDelete = async (dishId) => {
+    try {
+      await removeFavoriteDish(dishId);
+      setDish(null);
+      navigate("/dishes");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <Flex height="92vh" p="0 3vw">
       <Box flex="1" mr="1.5vw" m="3vh">
@@ -143,20 +246,67 @@ export default function EditorPage() {
           productWeights={productWeights}
           handleWeightChange={handleWeightChange}
           handleRemoveProduct={handleRemoveProduct}
+          onSave={handleSave}
+          onDelete={handleDelete}
         />
       </Box>
 
       <Box flex="2" ml="1.5vw">
         <ToggleCards size="sm" option1={"Мои продукты"} option2={"Все продукты"} onChange={setSelectedSection} />
-        <Input size="md" placeholder="Введите название продукта" background="white" marginBottom="3vh"/>
-        <Button size="sm" leftIcon={<SmallAddIcon/>} height="2.5rem" colorScheme="purple" marginBottom="3vh" onClick={() => setEditingProduct({})}>
+        <Input
+          size="lg"
+          placeholder="Введите название продукта"
+          background="white"
+          marginBottom="3vh"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              const query = searchQuery.trim();
+
+              if (selectedSection === "Мои продукты") {
+                if (!query) {
+                  setProducts(favoriteProducts);
+                } else {
+                  const filtered = favoriteProducts.filter(p =>
+                    p.name.toLowerCase().includes(query.toLowerCase())
+                  );
+                  setProducts(filtered);
+                }
+              } else {
+                if (!query) {
+                  listProducts().then(setProducts);
+                } else {
+                  searchProducts(query).then(setProducts);
+                }
+              }
+            }
+          }}
+        />
+        <Button size="sm"
+          leftIcon={<SmallAddIcon/>}
+          height="2.5rem"
+          colorScheme="purple"
+          marginBottom="3vh"
+          onClick={() =>
+            setEditingProduct({
+              name: "",
+              calories: "",
+              protein: "",
+              fat: "",
+              carbs: "",
+            })
+          }
+        >
           Добавить продукт
         </Button>
-        {currentProducts.length > 0 ? (
+        {products.length > 0 ? (
           <EditorProductsList
-            products={currentProducts} 
+            products={products} 
             setEditingProduct={setEditingProduct}
             onAddProduct={handleAddProduct}
+            favoriteProducts={favoriteProducts}
+            setFavoriteProducts={setFavoriteProducts}
           />
         ) : (
           <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
@@ -164,7 +314,7 @@ export default function EditorPage() {
           </Card>
         )}
         {editingProduct && (
-          <ProductEditor ref={editRef} product={editingProduct} onSave={() => (setEditingProduct(null))} />
+          <ProductEditor ref={editRef} product={editingProduct} onSave={handleSaveProduct} onDelete={handleDeleteProduct} />
         )}
       </Box>
     </Flex>

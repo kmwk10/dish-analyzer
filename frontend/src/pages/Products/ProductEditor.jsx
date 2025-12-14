@@ -1,7 +1,7 @@
 import { Card, Box, Text, CardBody, Flex, Button, Input, InputRightElement, InputGroup } from "@chakra-ui/react";
 import { forwardRef, useState } from "react";
 
-const ProductEditor = forwardRef(({ product, onSave }, ref) => {
+const ProductEditor = forwardRef(({ product, onSave, onDelete }, ref) => {
   const [name, setName] = useState(product?.name || "");
   const [calories, setCalories] = useState(
     product?.calories != null ? String(product.calories).replaceAll('.', ',') : ""
@@ -16,6 +16,27 @@ const ProductEditor = forwardRef(({ product, onSave }, ref) => {
     product?.carbs != null ? String(product.carbs).replaceAll('.', ',') : ""
   );
 
+  const handleSaveClick = () => {
+    const isChanged =
+      name !== product?.name ||
+      calories !== String(product?.calories ?? "").replaceAll('.', ',') ||
+      protein !== String(product?.protein ?? "").replaceAll('.', ',') ||
+      fat !== String(product?.fat ?? "").replaceAll('.', ',') ||
+      carbs !== String(product?.carbs ?? "").replaceAll('.', ',');
+
+    if (isChanged) {
+      onSave({
+        ...product,
+        name,
+        calories,
+        protein,
+        fat,
+        carbs,
+      });
+    } else {
+      onSave(null);
+    }
+  };
 
   return (
     <Box
@@ -104,8 +125,24 @@ const ProductEditor = forwardRef(({ product, onSave }, ref) => {
               </Card>
             </>
           )}
-          <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={onSave}>Сохранить</Button>
-          <Button size="sm" colorScheme="red" width="100%">Удалить</Button>
+          <Button
+            size="sm"
+            colorScheme="purple"
+            width="100%" mb="1rem"
+            onClick={handleSaveClick}
+          >
+            Сохранить
+          </Button>
+          {product.id && (
+            <Button
+              size="sm"
+              colorScheme="red"
+              width="100%"
+              onClick={() => onDelete?.(product.id)}
+            >
+              Удалить
+            </Button>
+          )}
         </CardBody>
       </Card>
     </Box>

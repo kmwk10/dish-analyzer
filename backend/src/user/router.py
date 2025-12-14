@@ -8,7 +8,7 @@ from ..dependencies import get_current_user_id
 from ..dish import DishOut
 from ..product import ProductOut
 
-from .schemas import UserUpdate, UserOut
+from .schemas import UserUpdate, UserOut, PasswordUpdate
 from .service import UserService
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -43,6 +43,18 @@ async def delete_me_endpoint(
     if not deleted:
         raise HTTPException(status_code=404, detail="User not found")
     return {"detail": "User deleted"}
+
+
+@router.put("/me/password", response_model=dict)
+async def update_password_endpoint(
+    data: PasswordUpdate,
+    current_user: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    updated = await UserService.update_password(db, current_user, data.old_password, data.new_password)
+    if not updated:
+        raise HTTPException(status_code=400, detail="Old password is incorrect or update failed")
+    return {"detail": "Password updated successfully"}
 
 
 @router.get("/me/favorites/dishes/", response_model=List[DishOut])

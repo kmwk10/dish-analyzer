@@ -14,7 +14,6 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
 
 class UserOut(UserBase):
     id: UUID
@@ -23,6 +22,10 @@ class UserOut(UserBase):
     model_config = {
         "from_attributes": True
     }
+
+class PasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str
 
 class FavoriteProductBase(BaseModel):
     user_id: UUID

@@ -1,6 +1,16 @@
 import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { useState, useRef  } from "react";
+import { useState, useRef, useEffect  } from "react";
+
+import { getUserInfo } from "../../api/user";
+import { toNumber } from "../../utils/number";
+import {
+  listProducts,
+  searchProducts,
+  getFavoriteProducts,
+  removeFavoriteProduct,
+  saveProduct
+} from "../../api/products";
 
 import ToggleCards from "../../components/ToggleCards";
 import ProductsList from "./ProductsList";
@@ -11,9 +21,36 @@ export default function ProductsPage() {
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [favoriteProducts, setFavoriteProducts] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const cardRef = useRef()
   const editRef = useRef();
+
+  useEffect(() => {
+    async function fetchUserAndFavorites() {
+      const user = await getUserInfo();
+      setCurrentUserId(user.id);
+
+      const favProducts = await getFavoriteProducts();
+      setFavoriteProducts(favProducts);
+    }
+    fetchUserAndFavorites();
+  }, []);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      if (selectedSection === "Мои продукты") {
+        setProducts(favoriteProducts);
+      } else {
+        const all = await listProducts();
+        setProducts(all);
+      }
+    }
+    fetchProducts();
+  }, [selectedSection, favoriteProducts]);
 
   useOutsideClick({
     ref: cardRef,
@@ -25,57 +62,135 @@ export default function ProductsPage() {
     handler: () => setEditingProduct(null),
   });
 
-  // Для тестирования
-  const product1 = {
-    "name": "Творог 0,5% (Село зелёное)",
-    "calories": 74,
-    "protein": 18,
-    "fat": 0.5,
-    "carbs": 3.3,
-    "used_in_dishes": ["Творожная запеканка", "Сырники", "Ватрушки"]
+  async function handleSaveProduct(product) {
+    if (!product) {
+      setEditingProduct(null);
+      return;
+    }
+
+    try {
+      const payload = {
+        ...product,
+        calories: toNumber(product.calories),
+        protein: toNumber(product.protein),
+        fat: toNumber(product.fat),
+        carbs: toNumber(product.carbs),
+      };
+
+      const savedProduct = await saveProduct(payload, currentUserId);
+
+      setFavoriteProducts(prev => {
+        const filtered = prev.filter(p => p.id !== savedProduct.id && p.id !== product.id);
+        return [...filtered, savedProduct];
+      });
+
+      setProducts(prev => {
+        const filtered = prev.filter(p => p.id !== product.id);
+        return [...filtered, savedProduct];
+      });
+
+      setSelectedProduct(savedProduct);
+      setEditingProduct(null);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-    const product2 = {
-    "name": "Манка (Шебекинская)",
-    "calories": 350,
-    "protein": 13,
-    "fat": 1,
-    "carbs": 72,
-    "used_in_dishes": ["Творожная запеканка"]
-  }
+  async function handleDeleteProduct(productId) {
+    try {
+      await removeFavoriteProduct(productId);
+      setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
 
-  const product3 = {
-    "name": "Молоко 2,5% (Станция молочная)",
-    "calories": 53,
-    "protein": 3,
-    "fat": 2.5,
-    "carbs": 4.7,
-    "used_in_dishes": []
-  }
+      if (editingProduct?.id === productId) {
+        setEditingProduct(null);
+      }
 
-  const myProducts = [product1]
-  const allProducts = [product1, product2,  product3]
-  const currentProducts = (selectedSection === "Мои продукты") ? myProducts : allProducts
+      if (selectedProduct?.id === productId) {
+        setSelectedProduct(null);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   return (
     <Box margin="2vh 10vw">
       <ToggleCards option1={"Мои продукты"} option2={"Все продукты"} onChange={setSelectedSection}/>
-      <Input size="lg" placeholder="Введите название продукта" background="white" marginBottom="3vh"/>
-      <Button size="md" leftIcon={<SmallAddIcon/>} height="3rem" colorScheme="purple" marginBottom="3vh" onClick={() => setEditingProduct({})}>
+      <Input
+        size="lg"
+        placeholder="Введите название продукта"
+        background="white"
+        marginBottom="3vh"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            const query = searchQuery.trim();
+
+            if (selectedSection === "Мои продукты") {
+              if (!query) {
+                setProducts(favoriteProducts);
+              } else {
+                const filtered = favoriteProducts.filter(p =>
+                  p.name.toLowerCase().includes(query.toLowerCase())
+                );
+                setProducts(filtered);
+              }
+            } else {
+              if (!query) {
+                listProducts().then(setProducts);
+              } else {
+                searchProducts(query).then(setProducts);
+              }
+            }
+          }
+        }}
+      />
+      <Button
+        size="md"
+        leftIcon={<SmallAddIcon/>}
+        height="3rem"
+        colorScheme="purple"
+        marginBottom="3vh"
+        onClick={() =>
+          setEditingProduct({
+            name: "",
+            calories: "",
+            protein: "",
+            fat: "",
+            carbs: "",
+          })
+        }
+      >
         Добавить продукт
       </Button>
-      {currentProducts.length > 0 ? (
-        <ProductsList products={currentProducts} setSelectedProduct={setSelectedProduct} setEditingProduct={setEditingProduct}/>
+      {products.length > 0 ? (
+        <ProductsList
+          products={products}
+          setSelectedProduct={setSelectedProduct}
+          setEditingProduct={setEditingProduct}
+          favoriteProducts={favoriteProducts}
+          setFavoriteProducts={setFavoriteProducts}
+          currentUserId={currentUserId}
+        />
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
         </Card>
       )}
       {selectedProduct && (
-        <ProductCard ref={cardRef} product={selectedProduct} onEdit={() => (setEditingProduct(selectedProduct), setSelectedProduct(null))} />
+        <ProductCard
+          ref={cardRef}
+          product={selectedProduct}
+          onEdit={() => {
+            setEditingProduct(selectedProduct);
+            setSelectedProduct(null);
+          }}
+          onDelete={handleDeleteProduct}
+        />
       )}
       {editingProduct && (
-        <ProductEditor ref={editRef} product={editingProduct} onSave={() => (setSelectedProduct(editingProduct), setEditingProduct(null))} />
+        <ProductEditor ref={editRef} product={editingProduct} onSave={handleSaveProduct} onDelete={handleDeleteProduct}/>
       )}
     </Box>
   );

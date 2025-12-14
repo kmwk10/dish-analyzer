@@ -2,7 +2,9 @@ import { Card, Box, Text, CardBody, Flex, Button, Select } from "@chakra-ui/reac
 import { forwardRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const DishCard = forwardRef(({ dish }, ref) => {
+import { formatNumber } from "../../utils/number";
+
+const DishCard = forwardRef(({ dish, isFavorite, onDelete }, ref) => {
   const navigate = useNavigate();
 
   const [mode, setMode] = useState("per_100g");
@@ -10,9 +12,6 @@ const DishCard = forwardRef(({ dish }, ref) => {
   const handleChange = (e) => {
     setMode(e.target.value);
   };
-
-  const formatNumber = (num) =>
-    parseFloat(num.toFixed(1)).toLocaleString("ru-RU", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
 
   const getNutrition = () => {
     const weightPerServing = dish.weight / dish.servings;
@@ -64,7 +63,7 @@ const DishCard = forwardRef(({ dish }, ref) => {
           {dish.products?.length > 0 && (
             <Card fontSize="sm" backgroundColor="#ECECEC" padding="1rem" mb="1rem">
               {dish.products.map((product) => (
-                <Card marginBottom="0.5rem" padding="0.3rem 0.6rem" _last={{ mb: 0 }}>
+                <Card key={product.id} marginBottom="0.5rem" padding="0.3rem 0.6rem" _last={{ mb: 0 }}>
                   <Flex justifyContent="space-between">
                     <Text>{product.name}</Text>
                     <Text>{product.weight}г</Text>
@@ -115,9 +114,27 @@ const DishCard = forwardRef(({ dish }, ref) => {
               <Text whiteSpace="pre-line">{dish.recipe}</Text>
             </Card>
           )}
-
-          <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={() => navigate(`/dishes/editor/${dish.id}`)}>Изменить</Button>
-          <Button size="sm" colorScheme="red" width="100%">Удалить</Button>
+          {isFavorite && (
+            <>
+              <Button
+                size="sm"
+                colorScheme="purple"
+                width="100%"
+                mb="1rem"
+                onClick={() => navigate(`/dishes/editor/${dish.id}`)}
+              >
+                Изменить
+              </Button>
+              <Button
+                size="sm"
+                colorScheme="red"
+                width="100%"
+                onClick={() => onDelete?.(dish.id)}
+              >
+                Удалить
+              </Button>
+            </>
+          )}
         </CardBody>
       </Card>
     </Box>
