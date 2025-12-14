@@ -2,7 +2,7 @@ import { Card, Flex, Text } from "@chakra-ui/react";
 
 import EditorProductItem from "./EditorProductItem";
 
-export default function EditorProductsList({ products,setSelectedProduct, setEditingProduct, onAddProduct }) {
+export default function EditorProductsList({ products, setSelectedProduct, setEditingProduct, onAddProduct, favoriteProducts, setFavoriteProducts }) {
   return (
     <Card backgroundColor="#ECECEC" padding="2.5vh">
       <Flex alignItems="center" padding="0 1.4rem 1vh 1rem">
@@ -15,7 +15,10 @@ export default function EditorProductsList({ products,setSelectedProduct, setEdi
           product={product}
           setSelectedProduct={setSelectedProduct}
           setEditingProduct={setEditingProduct}
-          onAddProduct={onAddProduct}/>
+          onAddProduct={onAddProduct}
+          favoriteProducts={favoriteProducts}
+          setFavoriteProducts={setFavoriteProducts}
+        />
       ))}
     </Card>
   );

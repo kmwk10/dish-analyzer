@@ -1,5 +1,7 @@
 import { Box, Card, Flex, Text, IconButton } from "@chakra-ui/react";
-import { EditIcon, AddIcon } from "@chakra-ui/icons";
+import { EditIcon, Icon  } from "@chakra-ui/icons";
+import { TbHeartPlus } from "react-icons/tb";
+
 import { addFavoriteProduct } from "../../api/products";
 import { useState } from "react";
 
@@ -41,7 +43,7 @@ export default function ProductItem({ product, setSelectedProduct, setEditingPro
             />
           ) : (
             <IconButton
-              icon={<AddIcon color="purple.500" />}
+              icon={<Icon as={TbHeartPlus} color="purple.500" boxSize={5} />}
               variant="ghost"
               onClick={handleAddFavorite}
               isLoading={loading}

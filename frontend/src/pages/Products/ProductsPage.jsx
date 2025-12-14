@@ -125,13 +125,23 @@ export default function ProductsPage() {
         onChange={(e) => setSearchQuery(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
+            const query = searchQuery.trim();
+
             if (selectedSection === "Мои продукты") {
-              const filtered = favoriteProducts.filter(p =>
-                p.name.toLowerCase().includes(searchQuery.toLowerCase())
-              );
-              setProducts(filtered);
+              if (!query) {
+                setProducts(favoriteProducts);
+              } else {
+                const filtered = favoriteProducts.filter(p =>
+                  p.name.toLowerCase().includes(query.toLowerCase())
+                );
+                setProducts(filtered);
+              }
             } else {
-              searchProducts(searchQuery).then(setProducts);
+              if (!query) {
+                listProducts().then(setProducts);
+              } else {
+                searchProducts(query).then(setProducts);
+              }
             }
           }
         }}
