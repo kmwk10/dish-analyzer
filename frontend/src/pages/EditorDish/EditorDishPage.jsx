@@ -12,9 +12,12 @@ import {
   removeFavoriteProduct,
   saveProduct
 } from "../../api/products";
-import { 
+import {
+  getDish,
+  getDishProducts,
   saveDish,
-  updateDishProducts
+  updateDishProducts,
+  removeFavoriteDish
 } from "../../api/dishes";
 
 import EditorDishCard from "./EditorDishCard";
@@ -35,16 +38,10 @@ export default function EditorPage() {
   const [dish, setDish] = useState({});
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
   const [editingProduct, setEditingProduct] = useState(null);
+  const [localProducts, setLocalProducts] = useState([]);
+  const [productWeights, setProductWeights] = useState({});
 
   const editRef = useRef();
-
-  useEffect(() => {
-    async function fetchFavorites() {
-      const favs = await getFavoriteProducts();
-      setFavoriteProducts(favs);
-    }
-    fetchFavorites();
-  }, []);
 
   useEffect(() => {
     async function fetchUserAndFavorites() {
@@ -121,47 +118,39 @@ export default function EditorPage() {
     }
   }
 
-  const productInDish1 = {
-    "id": 1,
-    "weight": 300
-  }
-
-  const productInDish2 = {
-    "id": 2,
-    "weight": 100
-  }
-
   useEffect(() => {
     if (!isNew) {
-      // имитация загрузки существующего блюда
-      const fakeDish = {
-        "name": "Творожная запеканка",
-        "weight": 480,
-        "calories": 117,
-        "protein": 15,
-        "fat": 2.5,
-        "carbs": 10,
-        "servings": 2,
-        "products": [productInDish1, productInDish2],
-        "recipe": "Смешайте 2 яйца, творог и муку.\nПерелейте получившееся тесто в форму.\nПоставьте запекаться в духовку при 180 градусах на 45 минут."
-      };
-      setDish(fakeDish);
+      async function fetchDish() {
+        try {
+          const data = await getDish(id);
+          const dishProducts = await getDishProducts(id);
+          const allProducts = await listProducts();
+
+          const localProds = dishProducts.map(p => {
+            const productInfo = allProducts.find(prod => prod.id === p.product_id);
+            return {
+              id: p.product_id,
+              name: productInfo?.name,
+              weight: p.weight,
+            };
+          });
+
+          const weights = {};
+          localProds.forEach(p => {
+            weights[p.id] = p.weight;
+          });
+
+          setDish({ ...data, products: localProds });
+          setLocalProducts(localProds);
+          setProductWeights(weights);
+        } catch (err) {
+          console.error("Не удалось загрузить блюдо", err);
+        }
+      }
+
+      fetchDish();
     }
-  }, [id]);
-
-  const [localProducts, setLocalProducts] = useState([]);
-  const [productWeights, setProductWeights] = useState({});
-
-  useEffect(() => {
-    if (!dish?.products) return;
-    setLocalProducts(dish.products);
-
-    const weights = {};
-    dish.products.forEach(p => {
-      weights[p.id] = p.weight;
-    });
-    setProductWeights(weights);
-  }, [dish]);
+  }, [id, isNew]);
 
   const handleWeightChange = (id, value) => {
     setProductWeights(prev => ({ ...prev, [id]: value }));
@@ -231,13 +220,22 @@ export default function EditorPage() {
           name: p.name,
         })),
       });
-      
       navigate("/dishes");
 
     } catch (err) {
       console.error(err);
     }
   }
+
+  const handleDelete = async (dishId) => {
+    try {
+      await removeFavoriteDish(dishId);
+      setDish(null);
+      navigate("/dishes");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <Flex height="92vh" p="0 3vw">
@@ -249,6 +247,7 @@ export default function EditorPage() {
           handleWeightChange={handleWeightChange}
           handleRemoveProduct={handleRemoveProduct}
           onSave={handleSave}
+          onDelete={handleDelete}
         />
       </Box>
 
@@ -284,7 +283,21 @@ export default function EditorPage() {
             }
           }}
         />
-        <Button size="sm" leftIcon={<SmallAddIcon/>} height="2.5rem" colorScheme="purple" marginBottom="3vh" onClick={() => setEditingProduct({})}>
+        <Button size="sm"
+          leftIcon={<SmallAddIcon/>}
+          height="2.5rem"
+          colorScheme="purple"
+          marginBottom="3vh"
+          onClick={() =>
+            setEditingProduct({
+              name: "",
+              calories: "",
+              protein: "",
+              fat: "",
+              carbs: "",
+            })
+          }
+        >
           Добавить продукт
         </Button>
         {products.length > 0 ? (

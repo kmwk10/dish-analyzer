@@ -1,4 +1,4 @@
-import { Card, CardBody, Input, Text, InputGroup, InputRightElement, Textarea, Button, Flex, IconButton, CloseButton } from "@chakra-ui/react";
+import { Card, CardBody, Input, Text, InputGroup, InputRightElement, Textarea, Button, Flex, IconButton } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 
 import ServingSelect from "./ServingSelect";
@@ -178,7 +178,14 @@ export default function EditorDishCard({ dish, localProducts, productWeights, ha
         />
 
         <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={handleSaveClick}>Сохранить</Button>
-        <Button size="sm" colorScheme="red" width="100%">Удалить</Button>
+        <Button
+          size="sm"
+          colorScheme="red"
+          width="100%"
+          onClick={() => onDelete?.(dish.id)}
+        >
+          Удалить
+        </Button>
       </CardBody>
     </Card>
   );

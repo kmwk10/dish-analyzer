@@ -179,7 +179,14 @@ export default function ProductsPage() {
         </Card>
       )}
       {selectedProduct && (
-        <ProductCard ref={cardRef} product={selectedProduct} onEdit={() => (setEditingProduct(selectedProduct), setSelectedProduct(null))} />
+        <ProductCard
+          ref={cardRef}
+          product={selectedProduct}
+          onEdit={() => {
+            setEditingProduct(selectedProduct);
+            setSelectedProduct(null);
+          }}
+        />
       )}
       {editingProduct && (
         <ProductEditor ref={editRef} product={editingProduct} onSave={handleSaveProduct} onDelete={handleDeleteProduct}/>

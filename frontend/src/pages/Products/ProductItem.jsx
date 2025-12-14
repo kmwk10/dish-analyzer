@@ -18,7 +18,7 @@ export default function ProductItem({ product, setSelectedProduct, setEditingPro
       await addFavoriteProduct(product.id);
       setFavoriteProducts(prev => [...prev, product]);
     } catch (err) {
-      console.error("Не удалось добавить продукт в избранное", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }

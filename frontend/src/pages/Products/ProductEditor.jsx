@@ -133,14 +133,16 @@ const ProductEditor = forwardRef(({ product, onSave, onDelete }, ref) => {
           >
             Сохранить
           </Button>
-          <Button
-            size="sm"
-            colorScheme="red"
-            width="100%"
-            onClick={() => onDelete?.(product.id)}
-          >
-            Удалить
-          </Button>
+          {product.id && (
+            <Button
+              size="sm"
+              colorScheme="red"
+              width="100%"
+              onClick={() => onDelete?.(product.id)}
+            >
+              Удалить
+            </Button>
+          )}
         </CardBody>
       </Card>
     </Box>
