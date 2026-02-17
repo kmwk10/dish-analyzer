@@ -187,6 +187,7 @@ export default function ProductsPage() {
             setSelectedProduct(null);
           }}
           onDelete={handleDeleteProduct}
+          isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
         />
       )}
       {editingProduct && (
