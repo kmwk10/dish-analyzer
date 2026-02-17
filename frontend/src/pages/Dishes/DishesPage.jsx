@@ -14,11 +14,12 @@ export default function DishesPage() {
   const navigate = useNavigate();
   const cardRef = useRef();
 
-  const [selectedSection, setSelectedSection] = useState("Мои блюда");
   const [selectedDish, setSelectedDish] = useState(null);
   const [dishes, setDishes] = useState([]);
   const [favoriteDishes, setFavoriteDishes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
+  const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои блюда" : "Все блюда");
 
   useOutsideClick({
     ref: cardRef,
@@ -26,19 +27,33 @@ export default function DishesPage() {
   });
 
   useEffect(() => {
-    async function fetchDishes() {
-      const favs = await getFavoriteDishes();
-      setFavoriteDishes(favs);
+    const token = localStorage.getItem("access_token");
+    setIsAuthenticated(!!token);
+  }, []);
 
-      if (selectedSection === "Мои блюда") {
-        setDishes(favs);
-      } else {
+  useEffect(() => {
+    async function fetchDishes() {
+      try {
+        if (isAuthenticated) {
+          const favs = await getFavoriteDishes();
+          setFavoriteDishes(favs);
+
+          if (selectedSection === "Мои блюда") {
+            setDishes(favs);
+            return;
+          }
+        }
+
         const all = await listDishes();
         setDishes(all);
+
+      } catch (err) {
+        console.error(err);
       }
     }
+
     fetchDishes();
-  }, [selectedSection]);
+  }, [selectedSection, isAuthenticated]);
 
   useEffect(() => {
     if (!selectedDish?.id) return;
@@ -99,7 +114,18 @@ export default function DishesPage() {
 
   return (
     <Box margin="2vh 10vw">
-      <ToggleCards option1={"Мои блюда"} option2={"Все блюда"} onChange={setSelectedSection} />
+      <ToggleCards
+        option1="Мои блюда"
+        option2="Все блюда"
+        value={selectedSection}
+        onChange={(option) => {
+          if (option === "Мои блюда" && !isAuthenticated) {
+            navigate("/auth");
+            return;
+          }
+          setSelectedSection(option);
+        }}
+      />
       <Input
         size="lg"
         placeholder="Введите название блюда"
@@ -121,7 +147,7 @@ export default function DishesPage() {
       </Button>
 
       {dishes.length > 0 ? (
-        <DishesList dishes={dishes} setSelectedDish={setSelectedDish} favoriteDishes={favoriteDishes} setFavoriteDishes={setFavoriteDishes}/>
+        <DishesList dishes={dishes} setSelectedDish={setSelectedDish} favoriteDishes={favoriteDishes} setFavoriteDishes={setFavoriteDishes} isAuthenticated={isAuthenticated} />
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить блюдо.

@@ -252,7 +252,13 @@ export default function EditorPage() {
       </Box>
 
       <Box flex="2" ml="1.5vw">
-        <ToggleCards size="sm" option1={"Мои продукты"} option2={"Все продукты"} onChange={setSelectedSection} />
+        <ToggleCards
+          size="sm"
+          option1="Мои продукты"
+          option2="Все продукты"
+          value={selectedSection}
+          onChange={(option) => setSelectedSection(option)}
+        />
         <Input
           size="lg"
           placeholder="Введите название продукта"

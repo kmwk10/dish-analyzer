@@ -1,6 +1,6 @@
 import { Box, Flex, Alert, AlertIcon } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { login, register } from "../../api/auth";
 import WelcomeCard from "./WelcomeCard";
@@ -13,6 +13,18 @@ export default function AuthPage() {
   const [view, setView] = useState("welcome"); // welcome | login | register
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem("hasSeenWelcome");
+    if (hasSeenWelcome) {
+      setView("login");
+    }
+  }, []);
+
+  const handleWelcomeClick = () => {
+    localStorage.setItem("hasSeenWelcome", "true");
+    setView("login");
+  };
 
   const handleLogin = async (data) => {
     try {
@@ -94,7 +106,7 @@ const handleRegister = async (data) => {
 
       <Flex minH="100vh" display="flex" alignItems="center" justifyContent="center">
         {view === "welcome" && (
-          <WelcomeCard onClick={() => setView("login")} />
+          <WelcomeCard  onClick={handleWelcomeClick} />
         )}
         {view === "login" && (
           <LoginCard
