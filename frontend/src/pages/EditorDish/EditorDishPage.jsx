@@ -8,6 +8,7 @@ import { toNumber } from "../../utils/number";
 import {
   listProducts,
   searchProducts,
+  deleteProduct,
   getFavoriteProducts,
   removeFavoriteProduct,
   saveProduct
@@ -104,7 +105,7 @@ export default function EditorPage() {
     }
   }
 
-  async function handleDeleteProduct(productId) {
+  async function handleRemoveFavorite(productId) {
     try {
       await removeFavoriteProduct(productId);
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
@@ -112,6 +113,20 @@ export default function EditorPage() {
       if (editingProduct?.id === productId) {
         setEditingProduct(null);
       }
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function handleDeleteProduct(productId) {
+    try {
+      await deleteProduct(productId);
+
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
+
+      if (editingProduct?.id === productId) setEditingProduct(null);
 
     } catch (err) {
       console.error(err);
@@ -320,7 +335,14 @@ export default function EditorPage() {
           </Card>
         )}
         {editingProduct && (
-          <ProductEditor ref={editRef} product={editingProduct} onSave={handleSaveProduct} onDelete={handleDeleteProduct} />
+          <ProductEditor
+            ref={editRef}
+            product={editingProduct}
+            onSave={handleSaveProduct}
+            onRemoveFavorite={handleRemoveFavorite}
+            onDelete={handleDeleteProduct}
+            currentUserId={currentUserId}
+          />
         )}
       </Box>
     </Flex>

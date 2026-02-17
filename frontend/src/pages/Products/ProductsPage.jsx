@@ -8,6 +8,7 @@ import { toNumber } from "../../utils/number";
 import {
   listProducts,
   searchProducts,
+  deleteProduct,
   getFavoriteProducts,
   removeFavoriteProduct,
   saveProduct
@@ -116,7 +117,7 @@ export default function ProductsPage() {
     }
   }
 
-  async function handleDeleteProduct(productId) {
+  async function handleRemoveFavorite(productId) {
     try {
       await removeFavoriteProduct(productId);
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
@@ -128,6 +129,21 @@ export default function ProductsPage() {
       if (selectedProduct?.id === productId) {
         setSelectedProduct(null);
       }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function handleDeleteProduct(productId) {
+    try {
+      await deleteProduct(productId);
+
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
+
+      if (selectedProduct?.id === productId) setSelectedProduct(null);
+      if (editingProduct?.id === productId) setEditingProduct(null);
+
     } catch (err) {
       console.error(err);
     }
@@ -221,12 +237,21 @@ export default function ProductsPage() {
             setEditingProduct(selectedProduct);
             setSelectedProduct(null);
           }}
+          onRemoveFavorite={handleRemoveFavorite}
           onDelete={handleDeleteProduct}
+          currentUserId={currentUserId}
           isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
         />
       )}
       {editingProduct && (
-        <ProductEditor ref={editRef} product={editingProduct} onSave={handleSaveProduct} onDelete={handleDeleteProduct}/>
+        <ProductEditor
+          ref={editRef}
+          product={editingProduct}
+          onSave={handleSaveProduct}
+          onRemoveFavorite={handleRemoveFavorite}
+          onDelete={handleDeleteProduct}
+          currentUserId={currentUserId}
+        />
       )}
     </Box>
   );

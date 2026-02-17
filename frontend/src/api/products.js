@@ -21,6 +21,11 @@ export async function updateProduct(id, data) {
   return response.data;
 }
 
+export async function deleteProduct(id) {
+  const response = await api.delete(`/product/${id}`);
+  return response.data;
+}
+
 
 export async function getFavoriteProducts() {
   const response = await api.get("/user/me/favorites/products/");

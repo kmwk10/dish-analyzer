@@ -1,7 +1,7 @@
 import { Card, Box, Text, CardBody, Flex, Button, Input, InputRightElement, InputGroup } from "@chakra-ui/react";
 import { forwardRef, useState } from "react";
 
-const ProductEditor = forwardRef(({ product, onSave, onDelete }, ref) => {
+const ProductEditor = forwardRef(({ product, onSave, onRemoveFavorite, onDelete, currentUserId }, ref) => {
   const [name, setName] = useState(product?.name || "");
   const [calories, setCalories] = useState(
     product?.calories != null ? String(product.calories).replaceAll('.', ',') : ""
@@ -136,9 +136,19 @@ const ProductEditor = forwardRef(({ product, onSave, onDelete }, ref) => {
           {product.id && (
             <Button
               size="sm"
+              colorScheme="purple"
+              width="100%" mb="1rem"
+              onClick={() => onRemoveFavorite?.(product.id)}
+            >
+              Убрать из избранного
+            </Button>
+          )}
+          {product.created_by === currentUserId && (
+            <Button
+              size="sm"
               colorScheme="red"
               width="100%"
-              onClick={() => onDelete?.(product.id)}
+              onClick={() => onDelete(product.id)}
             >
               Удалить
             </Button>
