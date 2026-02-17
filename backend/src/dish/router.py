@@ -5,9 +5,11 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
 from ..dependencies import get_current_user_id
+from ..user.models import User
 
 from .schemas import DishCreate, DishUpdate, DishOut, DishProductOut, DishProductIn
 from .service import DishService
+from .permissions import dish_owner_only, dish_owner_or_admin
 
 router = APIRouter(prefix="/dish", tags=["Dish"])
 
@@ -37,7 +39,7 @@ async def update_dish_endpoint(
     dish_id: UUID,
     dish: DishUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: UUID = Depends(get_current_user_id)
+    user: User = Depends(dish_owner_only)
 ):
     updated = await DishService.update_dish(db, dish_id, dish.model_dump(exclude_unset=True))
     if not updated:
@@ -48,7 +50,7 @@ async def update_dish_endpoint(
 async def delete_dish_endpoint(
     dish_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: UUID = Depends(get_current_user_id)
+    user: User = Depends(dish_owner_or_admin),
 ):
     deleted = await DishService.delete_dish(db, dish_id)
     if not deleted:
@@ -82,7 +84,7 @@ async def add_products_to_dish_endpoint(
     dish_id: UUID,
     product_ids: List[DishProductIn],
     db: AsyncSession = Depends(get_db),
-    current_user: UUID = Depends(get_current_user_id)
+    user: User = Depends(dish_owner_only)
 ):
     await DishService.add_products_to_dish(db, dish_id, product_ids)
     return {"detail": "Products added to dish"}
@@ -92,7 +94,7 @@ async def update_dish_products_endpoint(
     dish_id: UUID,
     product_ids: List[DishProductIn],
     db: AsyncSession = Depends(get_db),
-    current_user: UUID = Depends(get_current_user_id)
+    user: User = Depends(dish_owner_only)
 ):
     await DishService.update_dish_products(db, dish_id, product_ids)
     return {"detail": "Dish products updated"}
