@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { formatNumber } from "../../utils/number";
 
-const DishCard = forwardRef(({ dish, isFavorite, onDelete }, ref) => {
+const DishCard = forwardRef(({ dish, isFavorite, onRemoveFavorite, onDeleteDish, currentUserId  }, ref) => {
   const navigate = useNavigate();
 
   const [mode, setMode] = useState("per_100g");
@@ -127,14 +127,25 @@ const DishCard = forwardRef(({ dish, isFavorite, onDelete }, ref) => {
               </Button>
               <Button
                 size="sm"
-                colorScheme="red"
+                colorScheme="purple"
                 width="100%"
-                onClick={() => onDelete?.(dish.id)}
+                mb="1rem"
+                onClick={() => onRemoveFavorite?.(dish.id)}
               >
-                Удалить
+                Убрать из избранного
               </Button>
-            </>
-          )}
+              {currentUserId === dish.created_by && (
+                <Button
+                  size="sm"
+                  colorScheme="red"
+                  width="100%"
+                  onClick={() => onDeleteDish?.(dish.id)}
+                >
+                  Удалить
+                </Button>
+              )}
+                </>
+              )}
         </CardBody>
       </Card>
     </Box>

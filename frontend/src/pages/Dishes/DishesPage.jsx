@@ -7,8 +7,9 @@ import ToggleCards from "../../components/ToggleCards";
 import DishesList from "./DishesList";
 import DishCard from "./DishCard";
 
-import { listDishes, searchDishes, getFavoriteDishes, removeFavoriteDish, getDishProducts } from "../../api/dishes";
+import { listDishes, searchDishes, deleteDish, getFavoriteDishes, removeFavoriteDish, getDishProducts } from "../../api/dishes";
 import { listProducts } from "../../api/products";
+import { getUserInfo } from "../../api/user";
 
 export default function DishesPage() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function DishesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
   const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои блюда" : "Все блюда");
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useOutsideClick({
     ref: cardRef,
@@ -30,6 +32,19 @@ export default function DishesPage() {
     const token = localStorage.getItem("access_token");
     setIsAuthenticated(!!token);
   }, []);
+
+  useEffect(() => {
+    async function fetchCurrentUser() {
+      try {
+        const user = await getUserInfo();
+        setCurrentUserId(user.id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    if (isAuthenticated) fetchCurrentUser();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     async function fetchDishes() {
@@ -102,15 +117,28 @@ export default function DishesPage() {
     }
   };
   
-  const handleDelete = async (dishId) => {
+  const handleRemoveFavorite = async (dishId) => {
     try {
       await removeFavoriteDish(dishId);
       setFavoriteDishes(prev => prev.filter(d => d.id !== dishId));
+      setDishes(prev => prev.filter(d => d.id !== dishId));
       setSelectedDish(null);
     } catch (err) {
       console.error(err);
     }
   };
+
+  const handleDeleteDish = async (dishId) => {
+    try {
+      await deleteDish(dishId);
+      setDishes(prev => prev.filter(d => d.id !== dishId));
+      setFavoriteDishes(prev => prev.filter(d => d.id !== dishId));
+      setSelectedDish(null);
+    } catch (err) {
+      console.error("Не удалось удалить блюдо:", err);
+    }
+  };
+
 
   return (
     <Box margin="2vh 10vw">
@@ -159,7 +187,9 @@ export default function DishesPage() {
           ref={cardRef}
           dish={selectedDish}
           isFavorite={favoriteDishes.some(d => d.id === selectedDish.id)}
-          onDelete={handleDelete}
+          onRemoveFavorite={handleRemoveFavorite}
+          onDeleteDish={handleDeleteDish}
+          currentUserId={currentUserId}
         />
       )}
     </Box>
