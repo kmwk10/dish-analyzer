@@ -85,3 +85,14 @@ class DishService:
         ]
         db.add_all(objects)
         await db.commit()
+
+    @staticmethod
+    async def get_dish_owner_id(
+        db: AsyncSession,
+        dish_id: UUID,
+    ) -> UUID:
+        result = await db.execute(
+            select(Dish.created_by).where(Dish.id == dish_id)
+        )
+        owner_id = result.scalar_one_or_none()
+        return owner_id
