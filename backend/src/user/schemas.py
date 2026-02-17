@@ -55,3 +55,6 @@ class FavoriteDishOut(FavoriteDishBase):
     model_config = {
         "from_attributes": True
     }
+
+class UserRoleUpdate(BaseModel):
+    role: UserRole
