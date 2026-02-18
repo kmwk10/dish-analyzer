@@ -1,7 +1,9 @@
-import { Card, Box, Text, CardBody, Flex, Button } from "@chakra-ui/react";
+import { Card, Box, Text, CardBody, Flex, Button, Badge } from "@chakra-ui/react";
 import { forwardRef } from "react";
 
-const ProductCard = forwardRef(({ product, onEdit, onRemoveFavorite, onDelete, currentUserId, isFavorite }, ref) => {
+const ProductCard = forwardRef(({ product, onEdit, onRemoveFavorite, onDelete, currentUserId, isAdmin, isFavorite }, ref) => {
+  const isOwner = currentUserId === product.created_by;
+
   return (
     <Box
       position="fixed"
@@ -57,12 +59,26 @@ const ProductCard = forwardRef(({ product, onEdit, onRemoveFavorite, onDelete, c
               <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={() => onRemoveFavorite?.(product.id)}>
                 Убрать из избранного
               </Button>
-              {product.created_by === currentUserId && (
-                <Button size="sm" colorScheme="red" width="100%" onClick={() => onDelete(product.id)}>
-                  Удалить
-                </Button>
-              )}
+
             </>
+          )}
+          {(isOwner || isAdmin) && (
+            <Flex align="center" justify="space-between">
+              <Button
+                size="sm"
+                colorScheme="red"
+                width="100%"
+                onClick={() => onDelete(product.id)}
+              >
+                Удалить
+              </Button>
+
+              {isAdmin && !isOwner && (
+                <Badge colorScheme="purple" variant="subtle" ml="0.5rem">
+                  ADMIN
+                </Badge>
+              )}
+            </Flex>
           )}
         </CardBody>
       </Card>

@@ -27,6 +27,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
   const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои продукты" : "Все продукты");
@@ -40,6 +41,7 @@ export default function ProductsPage() {
       try {
         const user = await getUserInfo();
         setCurrentUserId(user.id);
+        setUserRole(user.role);
 
         const favProducts = await getFavoriteProducts();
         setFavoriteProducts(favProducts);
@@ -240,6 +242,7 @@ export default function ProductsPage() {
           onRemoveFavorite={handleRemoveFavorite}
           onDelete={handleDeleteProduct}
           currentUserId={currentUserId}
+          isAdmin={userRole === "admin"}
           isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
         />
       )}
@@ -251,6 +254,7 @@ export default function ProductsPage() {
           onRemoveFavorite={handleRemoveFavorite}
           onDelete={handleDeleteProduct}
           currentUserId={currentUserId}
+          isAdmin={userRole === "admin"}
         />
       )}
     </Box>
