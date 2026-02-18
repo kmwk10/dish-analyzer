@@ -22,6 +22,7 @@ export default function DishesPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
   const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои блюда" : "Все блюда");
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
   useOutsideClick({
     ref: cardRef,
@@ -38,6 +39,7 @@ export default function DishesPage() {
       try {
         const user = await getUserInfo();
         setCurrentUserId(user.id);
+        setUserRole(user.role);
       } catch (err) {
         console.error(err);
       }
@@ -190,6 +192,7 @@ export default function DishesPage() {
           onRemoveFavorite={handleRemoveFavorite}
           onDeleteDish={handleDeleteDish}
           currentUserId={currentUserId}
+          isAdmin={userRole === "admin"}
         />
       )}
     </Box>

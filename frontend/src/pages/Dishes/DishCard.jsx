@@ -1,11 +1,13 @@
-import { Card, Box, Text, CardBody, Flex, Button, Select } from "@chakra-ui/react";
+import { Card, Box, Text, CardBody, Flex, Button, Select, Badge } from "@chakra-ui/react";
 import { forwardRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { formatNumber } from "../../utils/number";
 
-const DishCard = forwardRef(({ dish, isFavorite, onRemoveFavorite, onDeleteDish, currentUserId  }, ref) => {
+const DishCard = forwardRef(({ dish, isFavorite, onRemoveFavorite, onDeleteDish, currentUserId, isAdmin  }, ref) => {
   const navigate = useNavigate();
+
+  const isOwner = currentUserId === dish.created_by;
 
   const [mode, setMode] = useState("per_100g");
 
@@ -134,18 +136,26 @@ const DishCard = forwardRef(({ dish, isFavorite, onRemoveFavorite, onDeleteDish,
               >
                 Убрать из избранного
               </Button>
-              {currentUserId === dish.created_by && (
-                <Button
-                  size="sm"
-                  colorScheme="red"
-                  width="100%"
-                  onClick={() => onDeleteDish?.(dish.id)}
-                >
-                  Удалить
-                </Button>
+            </>
+          )}
+          {(isOwner || isAdmin) && (
+            <Flex align="center" justify="space-between">
+              <Button
+                size="sm"
+                colorScheme="red"
+                width="100%"
+                onClick={() => onDeleteDish(dish.id)}
+              >
+                Удалить
+              </Button>
+
+              {isAdmin && !isOwner && (
+                <Badge colorScheme="purple" variant="subtle" ml="0.5rem">
+                  ADMIN
+                </Badge>
               )}
-                </>
-              )}
+            </Flex>
+          )}
         </CardBody>
       </Card>
     </Box>
