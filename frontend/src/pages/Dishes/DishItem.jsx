@@ -7,7 +7,7 @@ import { useState } from "react";
 import { formatNumber } from "../../utils/number";
 import { addFavoriteDish } from "../../api/dishes";
 
-export default function DishItem({ dish, setSelectedDish, favoriteDishes, setFavoriteDishes }) {
+export default function DishItem({ dish, setSelectedDish, favoriteDishes, setFavoriteDishes, isAuthenticated }) {
   const navigate = useNavigate();
   const isFavorite = favoriteDishes.some(fav => fav.id === dish.id);
   const [loading, setLoading] = useState(false);
@@ -31,6 +31,11 @@ export default function DishItem({ dish, setSelectedDish, favoriteDishes, setFav
 
   const handleAddFavorite = async (e) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+
     setLoading(true);
     try {
       await addFavoriteDish(dish.id);

@@ -3,11 +3,15 @@ from typing import List
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.user.models import User
 from ..database import get_db
 from ..dependencies import get_current_user_id
 
 from .schemas import ProductCreate, ProductUpdate, ProductOut
 from .service import ProductService
+from .permissions import product_owner_only, product_owner_or_admin
+
 
 router = APIRouter(prefix="/product", tags=["Product"])
 
@@ -36,22 +40,20 @@ async def update_product_endpoint(
     product_id: UUID,
     product: ProductUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: UUID = Depends(get_current_user_id)
+    user: User = Depends(product_owner_only)
 ):
     updated = await ProductService.update_product(db, product_id, product.model_dump(exclude_unset=True))
     if not updated:
         raise HTTPException(status_code=404, detail="Product not found")
     return updated
 
-@router.delete("/{product_id}", response_model=dict)
+@router.delete("/{product_id}")
 async def delete_product_endpoint(
     product_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: UUID = Depends(get_current_user_id)
+    user: User = Depends(product_owner_or_admin),
 ):
-    deleted = await ProductService.delete_product(db, product_id)
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Product not found")
+    await ProductService.delete_product(db, product_id)
     return {"detail": "Product deleted"}
 
 @router.get("/", response_model=List[ProductOut])

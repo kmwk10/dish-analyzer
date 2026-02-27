@@ -8,12 +8,14 @@ import { toNumber } from "../../utils/number";
 import {
   listProducts,
   searchProducts,
+  deleteProduct,
   getFavoriteProducts,
   removeFavoriteProduct,
   saveProduct
 } from "../../api/products";
 import {
   getDish,
+  deleteDish,
   getDishProducts,
   saveDish,
   updateDishProducts,
@@ -104,7 +106,7 @@ export default function EditorPage() {
     }
   }
 
-  async function handleDeleteProduct(productId) {
+  async function handleRemoveFavProduct(productId) {
     try {
       await removeFavoriteProduct(productId);
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
@@ -112,6 +114,29 @@ export default function EditorPage() {
       if (editingProduct?.id === productId) {
         setEditingProduct(null);
       }
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function handleDeleteDish(dishId) {
+    try {
+      await deleteDish(dishId);
+      navigate("/dishes");
+    } catch (err) {
+      console.error("Не удалось удалить блюдо:", err);
+    }
+  }
+
+  async function handleDeleteProduct(productId) {
+    try {
+      await deleteProduct(productId);
+
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
+
+      if (editingProduct?.id === productId) setEditingProduct(null);
 
     } catch (err) {
       console.error(err);
@@ -227,10 +252,9 @@ export default function EditorPage() {
     }
   }
 
-  const handleDelete = async (dishId) => {
+  const handleRemoveFavDish = async (dishId) => {
     try {
       await removeFavoriteDish(dishId);
-      setDish(null);
       navigate("/dishes");
     } catch (err) {
       console.error(err);
@@ -247,12 +271,20 @@ export default function EditorPage() {
           handleWeightChange={handleWeightChange}
           handleRemoveProduct={handleRemoveProduct}
           onSave={handleSave}
-          onDelete={handleDelete}
+          onRemoveFavDish={handleRemoveFavDish}
+          onDelete={handleDeleteDish}
+          currentUserId={currentUserId}
         />
       </Box>
 
       <Box flex="2" ml="1.5vw">
-        <ToggleCards size="sm" option1={"Мои продукты"} option2={"Все продукты"} onChange={setSelectedSection} />
+        <ToggleCards
+          size="sm"
+          option1="Мои продукты"
+          option2="Все продукты"
+          value={selectedSection}
+          onChange={(option) => setSelectedSection(option)}
+        />
         <Input
           size="lg"
           placeholder="Введите название продукта"
@@ -314,7 +346,14 @@ export default function EditorPage() {
           </Card>
         )}
         {editingProduct && (
-          <ProductEditor ref={editRef} product={editingProduct} onSave={handleSaveProduct} onDelete={handleDeleteProduct} />
+          <ProductEditor
+            ref={editRef}
+            product={editingProduct}
+            onSave={handleSaveProduct}
+            onRemoveFavorite={handleRemoveFavProduct}
+            onDelete={handleDeleteProduct}
+            currentUserId={currentUserId}
+          />
         )}
       </Box>
     </Flex>

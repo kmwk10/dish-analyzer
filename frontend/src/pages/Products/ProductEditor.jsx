@@ -1,8 +1,11 @@
-import { Card, Box, Text, CardBody, Flex, Button, Input, InputRightElement, InputGroup } from "@chakra-ui/react";
+import { Card, Box, Text, CardBody, Flex, Button, Input, InputRightElement, InputGroup, Badge } from "@chakra-ui/react";
 import { forwardRef, useState } from "react";
 
-const ProductEditor = forwardRef(({ product, onSave, onDelete }, ref) => {
+const ProductEditor = forwardRef(({ product, onSave, onRemoveFavorite, onDelete, currentUserId, isAdmin }, ref) => {
+  const isOwner = currentUserId === product.created_by;
+
   const [name, setName] = useState(product?.name || "");
+
   const [calories, setCalories] = useState(
     product?.calories != null ? String(product.calories).replaceAll('.', ',') : ""
   );
@@ -136,12 +139,30 @@ const ProductEditor = forwardRef(({ product, onSave, onDelete }, ref) => {
           {product.id && (
             <Button
               size="sm"
-              colorScheme="red"
-              width="100%"
-              onClick={() => onDelete?.(product.id)}
+              colorScheme="purple"
+              width="100%" mb="1rem"
+              onClick={() => onRemoveFavorite?.(product.id)}
             >
-              Удалить
+              Убрать из избранного
             </Button>
+          )}
+          {(isOwner || isAdmin) && (
+            <Flex align="center" justify="space-between">
+              <Button
+                size="sm"
+                colorScheme="red"
+                width="100%"
+                onClick={() => onDelete(product.id)}
+              >
+                Удалить
+              </Button>
+
+              {isAdmin && !isOwner && (
+                <Badge colorScheme="purple" variant="subtle" ml="0.5rem">
+                  ADMIN
+                </Badge>
+              )}
+            </Flex>
           )}
         </CardBody>
       </Card>

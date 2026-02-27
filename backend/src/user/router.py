@@ -7,9 +7,11 @@ from ..database import get_db
 from ..dependencies import get_current_user_id
 from ..dish import DishOut
 from ..product import ProductOut
+from ..user.models import User
 
-from .schemas import UserUpdate, UserOut, PasswordUpdate
+from .schemas import UserUpdate, UserOut, PasswordUpdate, UserRoleUpdate
 from .service import UserService
+from .permissions import admin_only
 
 router = APIRouter(prefix="/user", tags=["User"])
 
@@ -106,3 +108,15 @@ async def remove_favorite_product_endpoint(
 ):
     await UserService.remove_favorite_product(db, current_user, product_id)
     return {"detail": "Product removed from favorites"}
+
+@router.put("/{user_id}/role", response_model=dict)
+async def update_user_role_endpoint(
+    user_id: UUID,
+    data: UserRoleUpdate,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(admin_only)
+):
+    updated = await UserService.update_user_role(db, user_id, data.role)
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"detail": f"User role updated to {data.role}"}

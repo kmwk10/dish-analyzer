@@ -1,12 +1,14 @@
 import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef, useEffect  } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { getUserInfo } from "../../api/user";
 import { toNumber } from "../../utils/number";
 import {
   listProducts,
   searchProducts,
+  deleteProduct,
   getFavoriteProducts,
   removeFavoriteProduct,
   saveProduct
@@ -18,39 +20,60 @@ import ProductCard from "./ProductCard";
 import ProductEditor from "./ProductEditor";
 
 export default function ProductsPage() {
-  const [selectedSection, setSelectedSection] = useState("Мои продукты");
+  const navigate = useNavigate();
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
+  const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои продукты" : "Все продукты");
 
   const cardRef = useRef()
   const editRef = useRef();
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     async function fetchUserAndFavorites() {
-      const user = await getUserInfo();
-      setCurrentUserId(user.id);
+      try {
+        const user = await getUserInfo();
+        setCurrentUserId(user.id);
+        setUserRole(user.role);
 
-      const favProducts = await getFavoriteProducts();
-      setFavoriteProducts(favProducts);
+        const favProducts = await getFavoriteProducts();
+        setFavoriteProducts(favProducts);
+      } catch (err) {
+        console.error(err);
+        navigate("/auth");
+      }
     }
+
     fetchUserAndFavorites();
-  }, []);
+  }, [isAuthenticated]);
+
 
   useEffect(() => {
     async function fetchProducts() {
-      if (selectedSection === "Мои продукты") {
-        setProducts(favoriteProducts);
-      } else {
-        const all = await listProducts();
-        setProducts(all);
+      try {
+        if (selectedSection === "Мои продукты") {
+          if (!isAuthenticated) {
+            navigate("/auth");
+            return;
+          }
+          setProducts(favoriteProducts);
+        } else {
+          const all = await listProducts();
+          setProducts(all);
+        }
+      } catch (err) {
+        console.error(err);
       }
     }
     fetchProducts();
-  }, [selectedSection, favoriteProducts]);
+  }, [selectedSection, favoriteProducts, isAuthenticated]);
 
   useOutsideClick({
     ref: cardRef,
@@ -96,7 +119,7 @@ export default function ProductsPage() {
     }
   }
 
-  async function handleDeleteProduct(productId) {
+  async function handleRemoveFavorite(productId) {
     try {
       await removeFavoriteProduct(productId);
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
@@ -113,9 +136,35 @@ export default function ProductsPage() {
     }
   }
 
+  async function handleDeleteProduct(productId) {
+    try {
+      await deleteProduct(productId);
+
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
+
+      if (selectedProduct?.id === productId) setSelectedProduct(null);
+      if (editingProduct?.id === productId) setEditingProduct(null);
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
     <Box margin="2vh 10vw">
-      <ToggleCards option1={"Мои продукты"} option2={"Все продукты"} onChange={setSelectedSection}/>
+    <ToggleCards
+      option1="Мои продукты"
+      option2="Все продукты"
+      value={selectedSection}
+      onChange={(option) => {
+        if (option === "Мои продукты" && !isAuthenticated) {
+          navigate("/auth");
+          return;
+        }
+        setSelectedSection(option);
+      }}
+    />
       <Input
         size="lg"
         placeholder="Введите название продукта"
@@ -148,19 +197,23 @@ export default function ProductsPage() {
       />
       <Button
         size="md"
-        leftIcon={<SmallAddIcon/>}
+        leftIcon={<SmallAddIcon />}
         height="3rem"
         colorScheme="purple"
         marginBottom="3vh"
-        onClick={() =>
+        onClick={() => {
+          if (!isAuthenticated) {
+            navigate("/auth");
+            return;
+          }
           setEditingProduct({
             name: "",
             calories: "",
             protein: "",
             fat: "",
             carbs: "",
-          })
-        }
+          });
+        }}
       >
         Добавить продукт
       </Button>
@@ -186,11 +239,23 @@ export default function ProductsPage() {
             setEditingProduct(selectedProduct);
             setSelectedProduct(null);
           }}
+          onRemoveFavorite={handleRemoveFavorite}
           onDelete={handleDeleteProduct}
+          currentUserId={currentUserId}
+          isAdmin={userRole === "admin"}
+          isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
         />
       )}
       {editingProduct && (
-        <ProductEditor ref={editRef} product={editingProduct} onSave={handleSaveProduct} onDelete={handleDeleteProduct}/>
+        <ProductEditor
+          ref={editRef}
+          product={editingProduct}
+          onSave={handleSaveProduct}
+          onRemoveFavorite={handleRemoveFavorite}
+          onDelete={handleDeleteProduct}
+          currentUserId={currentUserId}
+          isAdmin={userRole === "admin"}
+        />
       )}
     </Box>
   );

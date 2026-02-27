@@ -1,4 +1,4 @@
-import { Box, Card, CardHeader, Heading } from "@chakra-ui/react";
+import { Box, Card, CardHeader, Flex, Badge, Heading } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { getUserInfo } from "../../api/user";
 
@@ -28,7 +28,17 @@ export default function SettingsPage() {
     <Box margin="2vh 10vw">
       <Card backgroundColor="#ECECEC" padding="3vh" marginTop="3vh">
         <CardHeader padding="0 0 1rem 0">
-          <Heading size="md">Привет, {userInfo.username}!</Heading>
+          <Flex justify="space-between" align="center">
+            <Heading size="md">
+              Привет, {userInfo.username}!
+            </Heading>
+
+            {userInfo.role === "admin" && (
+              <Badge colorScheme="purple" variant="subtle" fontSize="1em">
+                ADMIN
+              </Badge>
+            )}
+          </Flex>
         </CardHeader>
         <SettingsItem
           label="Имя"

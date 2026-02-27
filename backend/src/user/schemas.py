@@ -2,7 +2,11 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
+from enum import Enum
 
+class UserRole(str, Enum):
+    user = "user"
+    admin = "admin"
 
 class UserBase(BaseModel):
     username: str
@@ -18,6 +22,7 @@ class UserUpdate(BaseModel):
 class UserOut(UserBase):
     id: UUID
     created_at: datetime
+    role: UserRole
 
     model_config = {
         "from_attributes": True
@@ -50,3 +55,6 @@ class FavoriteDishOut(FavoriteDishBase):
     model_config = {
         "from_attributes": True
     }
+
+class UserRoleUpdate(BaseModel):
+    role: UserRole

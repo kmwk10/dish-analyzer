@@ -80,3 +80,14 @@ class ProductService:
             select(Product).where(Product.name.ilike(f"%{query}%"))
         )
         return result.scalars().all()
+
+    @staticmethod
+    async def get_product_owner_id(
+        db: AsyncSession,
+        product_id: UUID
+    ) -> UUID:
+        result = await db.execute(
+            select(Product.created_by).where(Product.id == product_id)
+        )
+        owner_id = result.scalar_one_or_none()
+        return owner_id

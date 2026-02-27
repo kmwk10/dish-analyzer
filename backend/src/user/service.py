@@ -1,7 +1,7 @@
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth.security import verify_password, hash_password
@@ -114,3 +114,16 @@ class UserService:
             )
         )
         await db.commit()
+
+    @staticmethod
+    async def update_user_role(db: AsyncSession, user_id: UUID, role: str):
+        stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(role=role)
+            .returning(User)
+        )
+        result = await db.execute(stmt)
+        await db.commit()
+        user = result.scalar_one_or_none()
+        return user

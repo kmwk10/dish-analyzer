@@ -10,7 +10,6 @@ from .config import (
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 bearer_scheme = HTTPBearer()
 
 
@@ -23,6 +22,7 @@ def decode_token(token: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
         )
+
 
 def get_current_user_id(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)

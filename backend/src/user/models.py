@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import uuid
+from enum import Enum as PyEnum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, DateTime, ForeignKey, text
+from sqlalchemy import String, DateTime, ForeignKey, Enum, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -11,6 +12,11 @@ from ..database import Base
 if TYPE_CHECKING:
     from ..product.models import Product
     from ..dish.models import Dish
+
+
+class UserRole(str, PyEnum):
+    user = "user"
+    admin = "admin"
 
 
 class User(Base):
@@ -22,6 +28,11 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, name="user_role_enum"), 
+        nullable=False, 
+        server_default=UserRole.user.value
+    )
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=False
     )

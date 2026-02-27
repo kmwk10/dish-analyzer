@@ -7,7 +7,7 @@ import NutritionSelect from "./NutritionSelect";
 import { formatNumber } from "../../utils/number";
 import { CloseIcon } from "@chakra-ui/icons";
 
-export default function EditorDishCard({ dish, localProducts, productWeights, handleWeightChange, handleRemoveProduct, onSave, onDelete }) {
+export default function EditorDishCard({ dish, localProducts, productWeights, handleWeightChange, handleRemoveProduct, onSave, onRemoveFavDish, onDelete, currentUserId }) {
   const [name, setName] = useState("");
   const [weight, setWeight] = useState("");
 
@@ -180,12 +180,23 @@ export default function EditorDishCard({ dish, localProducts, productWeights, ha
         <Button size="sm" colorScheme="purple" width="100%" mb="1rem" onClick={handleSaveClick}>Сохранить</Button>
         <Button
           size="sm"
-          colorScheme="red"
+          colorScheme="purple"
           width="100%"
-          onClick={() => onDelete?.(dish.id)}
+          mb="1rem"
+          onClick={() => onRemoveFavDish?.(dish.id)}
         >
-          Удалить
+          Убрать из избранного
         </Button>
+        {dish.created_by === currentUserId && (
+          <Button
+            size="sm"
+            colorScheme="red"
+            width="100%"
+            onClick={() => onDelete(dish.id)}
+          >
+            Удалить
+          </Button>
+        )}
       </CardBody>
     </Card>
   );

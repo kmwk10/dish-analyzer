@@ -1,11 +1,13 @@
 import { Box, Card, Flex, Text, IconButton } from "@chakra-ui/react";
 import { EditIcon, Icon  } from "@chakra-ui/icons";
 import { TbHeartPlus } from "react-icons/tb";
+import { useNavigate } from "react-router-dom";
 
 import { addFavoriteProduct } from "../../api/products";
 import { useState } from "react";
 
 export default function ProductItem({ product, setSelectedProduct, setEditingProduct, favoriteProducts, setFavoriteProducts }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const isFavorite = favoriteProducts.some(fav => fav.id === product.id);
@@ -14,11 +16,22 @@ export default function ProductItem({ product, setSelectedProduct, setEditingPro
   const handleAddFavorite = async (e) => {
     e.stopPropagation();
     setLoading(true);
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setLoading(false);
+      navigate("/auth");
+      return;
+    }
+
     try {
       await addFavoriteProduct(product.id);
       setFavoriteProducts(prev => [...prev, product]);
     } catch (err) {
       console.error(err);
+      if (err.response?.status === 401) {
+        navigate("/auth");
+      }
     } finally {
       setLoading(false);
     }
