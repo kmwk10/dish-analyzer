@@ -1,14 +1,19 @@
 import { Box, Flex, Alert, AlertIcon } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 
+import api from "../../api/client";
 import { login, register } from "../../api/auth";
+import { getUserInfo } from "../../api/user";
+import { AuthContext } from "../../context/AuthContext";
 import WelcomeCard from "./WelcomeCard";
 import LoginCard from "./LoginCard";
 import RegisterCard from "./RegisterCard";
 
 export default function AuthPage() {
   const navigate = useNavigate();
+
+  const { setCurrentUserId, setIsAuthenticated, setUserRole } = useContext(AuthContext);
 
   const [view, setView] = useState("welcome"); // welcome | login | register
   const [loading, setLoading] = useState(false);
@@ -30,48 +35,60 @@ export default function AuthPage() {
     try {
       setLoading(true);
       setError(null);
-      const tokens = await login(data)
+
+      const tokens = await login(data);
 
       localStorage.setItem("access_token", tokens.access_token);
       localStorage.setItem("refresh_token", tokens.refresh_token);
 
+      const user = await getUserInfo();
+      setCurrentUserId(user.id);
+      setUserRole(user.role);
+      setIsAuthenticated(true);
+
       navigate("/"); 
     } catch (e) {
+      console.error(e);
       setError("Неверная почта или пароль");
     } finally {
       setLoading(false);
     }
   };
 
-const handleRegister = async (data) => {
-  try {
-    setLoading(true);
-    setError(null);
+  const handleRegister = async (data) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    if (data.password !== data.password2) {
-      setError("Пароли не совпадают");
-      return;
+      if (data.password !== data.password2) {
+        setError("Пароли не совпадают");
+        return;
+      }
+
+      const payload = {
+        username: data.name,
+        email: data.email,
+        password: data.password,
+      };
+
+      const tokens = await register(payload);
+
+      localStorage.setItem("access_token", tokens.access_token);
+      localStorage.setItem("refresh_token", tokens.refresh_token);
+
+      const user = await getUserInfo();
+      setCurrentUserId(user.id);
+      setUserRole(user.role);
+      setIsAuthenticated(true);
+
+      navigate("/");
+    } catch (e) {
+      console.error(e);
+      setError("Ошибка регистрации");
+    } finally {
+      setLoading(false);
     }
-
-    const payload = {
-      username: data.name,
-      email: data.email,
-      password: data.password,
-    };
-
-    const tokens = await register(payload);
-
-    localStorage.setItem("access_token", tokens.access_token);
-    localStorage.setItem("refresh_token", tokens.refresh_token);
-
-    navigate("/");
-  } catch (e) {
-    setError("Ошибка регистрации");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <Box
