@@ -1,9 +1,8 @@
 import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { useState, useRef, useEffect  } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getUserInfo } from "../../api/user";
 import { toNumber } from "../../utils/number";
 import {
   listProducts,
@@ -13,6 +12,7 @@ import {
   removeFavoriteProduct,
   saveProduct
 } from "../../api/products";
+import { AuthContext } from "../../context/AuthContext";
 
 import ToggleCards from "../../components/ToggleCards";
 import ProductsList from "./ProductsList";
@@ -22,14 +22,17 @@ import ProductEditor from "./ProductEditor";
 export default function ProductsPage() {
   const navigate = useNavigate();
 
+  const { 
+    isAuthenticated, 
+    currentUserId, 
+    userRole 
+  } = useContext(AuthContext);
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [userRole, setUserRole] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
   const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои продукты" : "Все продукты");
 
   const cardRef = useRef()
@@ -37,12 +40,9 @@ export default function ProductsPage() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    async function fetchUserAndFavorites() {
-      try {
-        const user = await getUserInfo();
-        setCurrentUserId(user.id);
-        setUserRole(user.role);
 
+    async function fetchFavorites() {
+      try {
         const favProducts = await getFavoriteProducts();
         setFavoriteProducts(favProducts);
       } catch (err) {
@@ -51,7 +51,7 @@ export default function ProductsPage() {
       }
     }
 
-    fetchUserAndFavorites();
+    fetchFavorites();
   }, [isAuthenticated]);
 
 

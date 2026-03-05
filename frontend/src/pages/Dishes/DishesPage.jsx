@@ -1,6 +1,6 @@
 import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 import ToggleCards from "../../components/ToggleCards";
@@ -9,44 +9,24 @@ import DishCard from "./DishCard";
 
 import { listDishes, searchDishes, deleteDish, getFavoriteDishes, removeFavoriteDish, getDishProducts } from "../../api/dishes";
 import { listProducts } from "../../api/products";
-import { getUserInfo } from "../../api/user";
+import { AuthContext } from "../../context/AuthContext";
 
 export default function DishesPage() {
   const navigate = useNavigate();
   const cardRef = useRef();
 
+  const { isAuthenticated, currentUserId, userRole } = useContext(AuthContext);
+
   const [selectedDish, setSelectedDish] = useState(null);
   const [dishes, setDishes] = useState([]);
   const [favoriteDishes, setFavoriteDishes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
   const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои блюда" : "Все блюда");
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [userRole, setUserRole] = useState(null);
 
   useOutsideClick({
     ref: cardRef,
     handler: () => setSelectedDish(null),
   });
-
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    setIsAuthenticated(!!token);
-  }, []);
-
-  useEffect(() => {
-    async function fetchCurrentUser() {
-      try {
-        const user = await getUserInfo();
-        setCurrentUserId(user.id);
-        setUserRole(user.role);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    if (isAuthenticated) fetchCurrentUser();
-  }, [isAuthenticated]);
 
   useEffect(() => {
     async function fetchDishes() {
