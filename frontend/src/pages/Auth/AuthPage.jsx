@@ -2,7 +2,6 @@ import { Box, Flex, Alert, AlertIcon } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 
-import api from "../../api/client";
 import { login, register } from "../../api/auth";
 import { getUserInfo } from "../../api/user";
 import { AuthContext } from "../../context/AuthContext";
