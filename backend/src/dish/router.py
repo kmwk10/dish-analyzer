@@ -59,11 +59,11 @@ async def delete_dish_endpoint(
 
 @router.get("/", response_model=List[DishOut])
 async def list_dishes_endpoint(
-    skip: int = 0,
-    limit: int = 100,
+    offset: int = 0,
+    limit: int = 20,
     db: AsyncSession = Depends(get_db)
 ):
-    return await DishService.list_dishes(db, skip=skip, limit=limit)
+    return await DishService.list_dishes(db, offset=offset, limit=limit)
 
 @router.get("/search/", response_model=List[DishOut])
 async def search_dishes_endpoint(

@@ -63,11 +63,13 @@ class ProductService:
     @staticmethod
     async def list_products(
         db: AsyncSession,
-        skip: int = 0,
-        limit: int = 100
+        offset: int = 0,
+        limit: int = 20
     ) -> List[Product]:
         result = await db.execute(
-            select(Product).offset(skip).limit(limit)
+            select(Product)
+            .offset(offset)
+            .limit(limit)
         )
         return result.scalars().all()
 

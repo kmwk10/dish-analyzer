@@ -43,8 +43,8 @@ class DishService:
         return True
 
     @staticmethod
-    async def list_dishes(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Dish]:
-        result = await db.execute(select(Dish).offset(skip).limit(limit))
+    async def list_dishes(db: AsyncSession, offset: int = 0, limit: int = 20) -> List[Dish]:
+        result = await db.execute(select(Dish).offset(offset).limit(limit))
         return result.scalars().all()
 
     @staticmethod

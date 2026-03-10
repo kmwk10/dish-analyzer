@@ -58,11 +58,11 @@ async def delete_product_endpoint(
 
 @router.get("/", response_model=List[ProductOut])
 async def list_products_endpoint(
-    skip: int = 0,
-    limit: int = 100,
+    offset: int = 0,
+    limit: int = 20,
     db: AsyncSession = Depends(get_db)
 ):
-    return await ProductService.list_products(db, skip=skip, limit=limit)
+    return await ProductService.list_products(db, offset=offset, limit=limit)
 
 @router.get("/search/", response_model=List[ProductOut])
 async def search_products_endpoint(
