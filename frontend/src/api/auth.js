@@ -9,3 +9,7 @@ export async function register(data) {
   const response = await api.post("/auth/register", data);
   return response.data;
 }
+
+export async function logout(refreshToken) {
+  await api.post(`/auth/logout?refresh_token=${refreshToken}`);
+}

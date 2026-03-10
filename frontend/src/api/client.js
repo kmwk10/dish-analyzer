@@ -22,11 +22,11 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refresh_token");
-        if (!refreshToken) return Promise.reject(err);
+        if (!refreshToken) throw new Error("No refresh token");
 
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/auth/refresh?refresh_token=${encodeURIComponent(refreshToken)}`
+        );
 
         const { access_token, refresh_token } = response.data;
 
@@ -36,6 +36,10 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return api(originalRequest);
       } catch (refreshError) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+
+        window.location.href = "/auth";
         return Promise.reject(refreshError);
       }
     }

@@ -1,6 +1,7 @@
-import { Box, Card, CardHeader, Flex, Badge, Heading } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { Box, Card, CardHeader, Flex, Badge, Heading, Button } from "@chakra-ui/react";
+import { useState, useEffect, useContext } from "react";
 import { getUserInfo } from "../../api/user";
+import { AuthContext } from "../../context/AuthContext";
 
 import SettingsItem from "./SettingsItem";
 import SettingsCard from "./SettingsCard";
@@ -9,6 +10,7 @@ import PasswordCard from "./PasswordCard";
 export default function SettingsPage() {
   const [settingsOpen, setSettingsOpen] = useState(""); // username | email | password
   const [userInfo, setUserInfo] = useState(null);
+  const { logout } = useContext(AuthContext);
 
   useEffect(() => {
     async function fetchUser() {
@@ -56,6 +58,16 @@ export default function SettingsPage() {
           onClick={() => setSettingsOpen("password")}
         />
       </Card>
+      <Flex justify="flex-end" marginTop="1rem">
+        <Button
+          padding="0.8rem 1.5rem"
+          colorScheme="purple"
+          width="min"
+          onClick={logout}
+        >
+          Выйти
+        </Button>
+      </Flex>
       {(settingsOpen === "username" || settingsOpen === "email") && (
         <SettingsCard option={settingsOpen} onCancel={() => setSettingsOpen("")} userInfo={userInfo} setUserInfo={setUserInfo}/>
       )}

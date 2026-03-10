@@ -5,7 +5,10 @@ from sqlalchemy import create_engine, pool
 from alembic import context
 
 from src.database import Base
-
+import src.auth.models
+import src.dish.models
+import src.product.models
+import src.user.models
 
 load_dotenv()
 

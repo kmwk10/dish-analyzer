@@ -1,9 +1,8 @@
 import { Card, Box, Input, Button, useOutsideClick, Flex } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { useState, useRef, useEffect  } from "react";
+import { useState, useRef, useEffect, useContext  } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getUserInfo } from "../../api/user";
 import { toNumber } from "../../utils/number";
 import {
   listProducts,
@@ -21,6 +20,7 @@ import {
   updateDishProducts,
   removeFavoriteDish
 } from "../../api/dishes";
+import { AuthContext } from "../../context/AuthContext";
 
 import EditorDishCard from "./EditorDishCard";
 import EditorProductsList from "./EditorProductsList";
@@ -31,11 +31,11 @@ import ToggleCards from "../../components/ToggleCards";
 export default function EditorPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { currentUserId } = useContext(AuthContext);
   
   const isNew = id === "new";
   const [products, setProducts] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [dish, setDish] = useState({});
   const [selectedSection, setSelectedSection] = useState("Мои продукты");
@@ -46,14 +46,11 @@ export default function EditorPage() {
   const editRef = useRef();
 
   useEffect(() => {
-    async function fetchUserAndFavorites() {
-      const user = await getUserInfo();
-      setCurrentUserId(user.id);
-
+    async function fetchFavorites() {
       const favProducts = await getFavoriteProducts();
       setFavoriteProducts(favProducts);
     }
-    fetchUserAndFavorites();
+    fetchFavorites();
   }, []);
 
   useEffect(() => {

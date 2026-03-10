@@ -45,3 +45,9 @@ def create_refresh_token(user_id: str) -> str:
         "exp": expire,
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+def hash_refresh_token(token: str) -> str:
+    return pwd_context.hash(token)
+
+def verify_refresh_token(token: str, token_hash: str) -> bool:
+    return pwd_context.verify(token, token_hash)

@@ -12,6 +12,7 @@ from ..database import Base
 if TYPE_CHECKING:
     from ..product.models import Product
     from ..dish.models import Dish
+    from ..auth.models import RefreshToken
 
 
 class UserRole(str, PyEnum):
@@ -44,6 +45,9 @@ class User(Base):
     )
     favorite_dishes: Mapped[list[FavoriteDish]] = relationship(
         "FavoriteDish", back_populates="user", cascade="all, delete-orphan"
+    )
+    refresh_tokens: Mapped[list[RefreshToken]] = relationship(
+        "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
 
 
