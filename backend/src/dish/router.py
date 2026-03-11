@@ -68,9 +68,22 @@ async def list_dishes_endpoint(
 @router.get("/search/", response_model=List[DishOut])
 async def search_dishes_endpoint(
     query: str = Query(..., min_length=1),
+    min_calories: float | None = None,
+    max_calories: float | None = None,
+    desc: bool = False,
+    offset: int = 0,
+    limit: int = 20,
     db: AsyncSession = Depends(get_db)
 ):
-    return await DishService.search_dishes(db, query)
+    return await DishService.search_dishes(
+        db,
+        query,
+        min_calories=min_calories,
+        max_calories=max_calories,
+        desc=desc,
+        offset=offset,
+        limit=limit
+    )
 
 @router.get("/{dish_id}/products/", response_model=List[DishProductOut])
 async def list_products_in_dish_endpoint(
