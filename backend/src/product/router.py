@@ -67,6 +67,19 @@ async def list_products_endpoint(
 @router.get("/search/", response_model=List[ProductOut])
 async def search_products_endpoint(
     query: str = Query(..., min_length=1),
+    min_calories: float | None = None,
+    max_calories: float | None = None,
+    desc: bool = False,
+    offset: int = 0,
+    limit: int = 20,
     db: AsyncSession = Depends(get_db)
 ):
-    return await ProductService.search_products(db, query)
+    return await ProductService.search_products(
+        db,
+        query,
+        min_calories=min_calories,
+        max_calories=max_calories,
+        desc=desc,
+        offset=offset,
+        limit=limit
+    )

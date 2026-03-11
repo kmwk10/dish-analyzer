@@ -1,7 +1,7 @@
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, desc as sa_desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Product
@@ -76,11 +76,24 @@ class ProductService:
     @staticmethod
     async def search_products(
         db: AsyncSession,
-        query: str
+        query: str,
+        min_calories: float | None = None,
+        max_calories: float | None = None,
+        desc: bool = False,
+        offset: int = 0,
+        limit: int = 20
     ) -> List[Product]:
-        result = await db.execute(
-            select(Product).where(Product.name.ilike(f"%{query}%"))
-        )
+        stmt = select(Product).where(Product.name.ilike(f"%{query}%"))
+
+        if min_calories is not None:
+            stmt = stmt.where(Product.calories >= min_calories)
+        if max_calories is not None:
+            stmt = stmt.where(Product.calories <= max_calories)
+
+        stmt = stmt.order_by(Product.created_at if desc else sa_desc(Product.created_at))
+        stmt = stmt.offset(offset).limit(limit)
+
+        result = await db.execute(stmt)
         return result.scalars().all()
 
     @staticmethod
