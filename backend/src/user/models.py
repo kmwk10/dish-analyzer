@@ -34,6 +34,7 @@ class User(Base):
         nullable=False, 
         server_default=UserRole.user.value
     )
+    avatar_key: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=False
     )
