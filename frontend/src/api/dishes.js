@@ -1,12 +1,22 @@
 import api from "./client";
 
-export async function listDishes(skip = 0, limit = 100) {
-  const response = await api.get("/dish/", { params: { skip, limit } });
+export async function listDishes(offset = 0, limit = 20) {
+  const response = await api.get("/dish/", { params: { offset, limit } });
   return response.data;
 }
 
-export async function searchDishes(query) {
-  const response = await api.get("/dish/search/", { params: { query } });
+
+export async function searchDishes({
+  query,
+  min_calories,
+  max_calories,
+  desc = false,
+  offset = 0,
+  limit = 20
+}) {
+  const response = await api.get("/dish/search/", {
+    params: { query, min_calories, max_calories, desc, offset, limit }
+  });
   return response.data;
 }
 

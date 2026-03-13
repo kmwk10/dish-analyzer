@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import ToggleCards from "../../components/ToggleCards";
 import DishesList from "./DishesList";
 import DishCard from "./DishCard";
+import Pagination from "../../components/Pagination";
 
 import { listDishes, searchDishes, deleteDish, getFavoriteDishes, removeFavoriteDish, getDishProducts } from "../../api/dishes";
 import { listProducts } from "../../api/products";
@@ -14,7 +15,6 @@ import { AuthContext } from "../../context/AuthContext";
 export default function DishesPage() {
   const navigate = useNavigate();
   const cardRef = useRef();
-
   const { isAuthenticated, currentUserId, userRole } = useContext(AuthContext);
 
   const [selectedDish, setSelectedDish] = useState(null);
@@ -22,6 +22,9 @@ export default function DishesPage() {
   const [favoriteDishes, setFavoriteDishes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои блюда" : "Все блюда");
+
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   useOutsideClick({
     ref: cardRef,
@@ -31,26 +34,32 @@ export default function DishesPage() {
   useEffect(() => {
     async function fetchDishes() {
       try {
+        const offset = (page - 1) * limit;
+
         if (isAuthenticated) {
           const favs = await getFavoriteDishes();
           setFavoriteDishes(favs);
 
           if (selectedSection === "Мои блюда") {
-            setDishes(favs);
+            setDishes(favs.slice(offset, offset + limit));
             return;
           }
         }
 
-        const all = await listDishes();
-        setDishes(all);
-
+        if (searchQuery.trim()) {
+          const results = await searchDishes({ query: searchQuery.trim(), offset, limit });
+          setDishes(results);
+        } else {
+          const all = await listDishes(offset, limit);
+          setDishes(all);
+        }
       } catch (err) {
         console.error(err);
       }
     }
 
     fetchDishes();
-  }, [selectedSection, isAuthenticated]);
+  }, [selectedSection, isAuthenticated, page, searchQuery]);
 
   useEffect(() => {
     if (!selectedDish?.id) return;
@@ -69,10 +78,7 @@ export default function DishesPage() {
           };
         });
 
-        setSelectedDish(prev => ({
-          ...prev,
-          products: localProds,
-        }));
+        setSelectedDish(prev => ({ ...prev, products: localProds }));
       } catch (err) {
         console.error(err);
       }
@@ -81,24 +87,11 @@ export default function DishesPage() {
     fetchDishProducts();
   }, [selectedDish?.id]);
 
-  const handleSearch = async (query) => {
-    const trimmed = query.trim();
-    if (!trimmed) {
-      setDishes(selectedSection === "Мои блюда" ? favoriteDishes : await listDishes());
-      return;
-    }
-
-    if (selectedSection === "Мои блюда") {
-      const filtered = favoriteDishes.filter(d =>
-        d.name.toLowerCase().includes(trimmed.toLowerCase())
-      );
-      setDishes(filtered);
-    } else {
-      const results = await searchDishes(trimmed);
-      setDishes(results);
-    }
+  const handleSearch = (query) => {
+    setPage(1);
+    setSearchQuery(query);
   };
-  
+
   const handleRemoveFavorite = async (dishId) => {
     try {
       await removeFavoriteDish(dishId);
@@ -121,7 +114,6 @@ export default function DishesPage() {
     }
   };
 
-
   return (
     <Box margin="2vh 10vw">
       <ToggleCards
@@ -134,8 +126,10 @@ export default function DishesPage() {
             return;
           }
           setSelectedSection(option);
+          setPage(1);
         }}
       />
+
       <Input
         size="lg"
         placeholder="Введите название блюда"
@@ -145,6 +139,7 @@ export default function DishesPage() {
         onChange={(e) => setSearchQuery(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") handleSearch(searchQuery); }}
       />
+
       <Button
         size="md"
         leftIcon={<SmallAddIcon />}
@@ -157,7 +152,17 @@ export default function DishesPage() {
       </Button>
 
       {dishes.length > 0 ? (
-        <DishesList dishes={dishes} setSelectedDish={setSelectedDish} favoriteDishes={favoriteDishes} setFavoriteDishes={setFavoriteDishes} isAuthenticated={isAuthenticated} />
+        <>
+          <DishesList
+            dishes={dishes}
+            setSelectedDish={setSelectedDish}
+            favoriteDishes={favoriteDishes}
+            setFavoriteDishes={setFavoriteDishes}
+            isAuthenticated={isAuthenticated}
+          />
+
+          <Pagination page={page} setPage={setPage} itemsLength={dishes.length} limit={limit} />
+        </>
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить блюдо.
