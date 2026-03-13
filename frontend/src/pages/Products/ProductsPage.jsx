@@ -18,15 +18,11 @@ import ToggleCards from "../../components/ToggleCards";
 import ProductsList from "./ProductsList";
 import ProductCard from "./ProductCard";
 import ProductEditor from "./ProductEditor";
+import Pagination from "../../components/Pagination";
 
 export default function ProductsPage() {
   const navigate = useNavigate();
-
-  const { 
-    isAuthenticated, 
-    currentUserId, 
-    userRole 
-  } = useContext(AuthContext);
+  const { isAuthenticated, currentUserId, userRole } = useContext(AuthContext);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -34,13 +30,14 @@ export default function ProductsPage() {
   const [favoriteProducts, setFavoriteProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои продукты" : "Все продукты");
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const cardRef = useRef()
+  const cardRef = useRef();
   const editRef = useRef();
 
   useEffect(() => {
     if (!isAuthenticated) return;
-
     async function fetchFavorites() {
       try {
         const favProducts = await getFavoriteProducts();
@@ -50,47 +47,40 @@ export default function ProductsPage() {
         navigate("/auth");
       }
     }
-
     fetchFavorites();
-  }, [isAuthenticated]);
-
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     async function fetchProducts() {
       try {
         if (selectedSection === "Мои продукты") {
-          if (!isAuthenticated) {
-            navigate("/auth");
-            return;
-          }
-          setProducts(favoriteProducts);
+          const start = (page - 1) * limit;
+          setProducts(favoriteProducts.slice(start, start + limit));
         } else {
-          const all = await listProducts();
-          setProducts(all);
+          const offset = (page - 1) * limit;
+          let data;
+          if (!searchQuery.trim()) {
+            data = await listProducts({ offset, limit });
+          } else {
+            data = await searchProducts({ query: searchQuery.trim(), offset, limit });
+          }
+          setProducts(data);
         }
       } catch (err) {
         console.error(err);
       }
     }
     fetchProducts();
-  }, [selectedSection, favoriteProducts, isAuthenticated]);
+  }, [selectedSection, favoriteProducts, page, searchQuery]);
 
-  useOutsideClick({
-    ref: cardRef,
-    handler: () => setSelectedProduct(null),
-  });
-
-  useOutsideClick({
-    ref: editRef,
-    handler: () => setEditingProduct(null),
-  });
+  useOutsideClick({ ref: cardRef, handler: () => setSelectedProduct(null) });
+  useOutsideClick({ ref: editRef, handler: () => setEditingProduct(null) });
 
   async function handleSaveProduct(product) {
     if (!product) {
       setEditingProduct(null);
       return;
     }
-
     try {
       const payload = {
         ...product,
@@ -99,7 +89,6 @@ export default function ProductsPage() {
         fat: toNumber(product.fat),
         carbs: toNumber(product.carbs),
       };
-
       const savedProduct = await saveProduct(payload, currentUserId);
 
       setFavoriteProducts(prev => {
@@ -123,14 +112,8 @@ export default function ProductsPage() {
     try {
       await removeFavoriteProduct(productId);
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
-
-      if (editingProduct?.id === productId) {
-        setEditingProduct(null);
-      }
-
-      if (selectedProduct?.id === productId) {
-        setSelectedProduct(null);
-      }
+      if (editingProduct?.id === productId) setEditingProduct(null);
+      if (selectedProduct?.id === productId) setSelectedProduct(null);
     } catch (err) {
       console.error(err);
     }
@@ -139,32 +122,33 @@ export default function ProductsPage() {
   async function handleDeleteProduct(productId) {
     try {
       await deleteProduct(productId);
-
       setProducts(prev => prev.filter(p => p.id !== productId));
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
-
       if (selectedProduct?.id === productId) setSelectedProduct(null);
       if (editingProduct?.id === productId) setEditingProduct(null);
-
     } catch (err) {
       console.error(err);
     }
   }
 
+  const itemsLength = selectedSection === "Мои продукты" ? favoriteProducts.length : 10000; // для всех продуктов API подгружает по limit
+
   return (
     <Box margin="2vh 10vw">
-    <ToggleCards
-      option1="Мои продукты"
-      option2="Все продукты"
-      value={selectedSection}
-      onChange={(option) => {
-        if (option === "Мои продукты" && !isAuthenticated) {
-          navigate("/auth");
-          return;
-        }
-        setSelectedSection(option);
-      }}
-    />
+      <ToggleCards
+        option1="Мои продукты"
+        option2="Все продукты"
+        value={selectedSection}
+        onChange={(option) => {
+          if (option === "Мои продукты" && !isAuthenticated) {
+            navigate("/auth");
+            return;
+          }
+          setSelectedSection(option);
+          setPage(1);
+        }}
+      />
+
       <Input
         size="lg"
         placeholder="Введите название продукта"
@@ -172,29 +156,9 @@ export default function ProductsPage() {
         marginBottom="3vh"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            const query = searchQuery.trim();
-
-            if (selectedSection === "Мои продукты") {
-              if (!query) {
-                setProducts(favoriteProducts);
-              } else {
-                const filtered = favoriteProducts.filter(p =>
-                  p.name.toLowerCase().includes(query.toLowerCase())
-                );
-                setProducts(filtered);
-              }
-            } else {
-              if (!query) {
-                listProducts().then(setProducts);
-              } else {
-                searchProducts(query).then(setProducts);
-              }
-            }
-          }
-        }}
+        onKeyDown={(e) => { if (e.key === "Enter") setPage(1); }}
       />
+
       <Button
         size="md"
         leftIcon={<SmallAddIcon />}
@@ -206,39 +170,40 @@ export default function ProductsPage() {
             navigate("/auth");
             return;
           }
-          setEditingProduct({
-            name: "",
-            calories: "",
-            protein: "",
-            fat: "",
-            carbs: "",
-          });
+          setEditingProduct({ name: "", calories: "", protein: "", fat: "", carbs: "" });
         }}
       >
         Добавить продукт
       </Button>
+
       {products.length > 0 ? (
-        <ProductsList
-          products={products}
-          setSelectedProduct={setSelectedProduct}
-          setEditingProduct={setEditingProduct}
-          favoriteProducts={favoriteProducts}
-          setFavoriteProducts={setFavoriteProducts}
-          currentUserId={currentUserId}
-        />
+        <>
+          <ProductsList
+            products={products}
+            setSelectedProduct={setSelectedProduct}
+            setEditingProduct={setEditingProduct}
+            favoriteProducts={favoriteProducts}
+            setFavoriteProducts={setFavoriteProducts}
+            currentUserId={currentUserId}
+          />
+          <Pagination
+            page={page}
+            setPage={setPage}
+            itemsLength={products.length}
+            limit={limit}
+          />
+        </>
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
         </Card>
       )}
+
       {selectedProduct && (
         <ProductCard
           ref={cardRef}
           product={selectedProduct}
-          onEdit={() => {
-            setEditingProduct(selectedProduct);
-            setSelectedProduct(null);
-          }}
+          onEdit={() => { setEditingProduct(selectedProduct); setSelectedProduct(null); }}
           onRemoveFavorite={handleRemoveFavorite}
           onDelete={handleDeleteProduct}
           currentUserId={currentUserId}
@@ -246,6 +211,7 @@ export default function ProductsPage() {
           isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
         />
       )}
+
       {editingProduct && (
         <ProductEditor
           ref={editRef}

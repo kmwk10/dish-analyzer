@@ -1,13 +1,24 @@
 import api from "./client";
 
 
-export async function listProducts(skip = 0, limit = 100) {
-  const response = await api.get("/product/", { params: { skip, limit } });
+export async function listProducts({ offset = 0, limit = 20 } = {}) {
+  const response = await api.get("/product/", {
+    params: { offset, limit }
+  });
   return response.data;
 }
 
-export async function searchProducts(query) {
-  const response = await api.get("/product/search/", { params: { query } });
+export async function searchProducts({
+  query,
+  min_calories,
+  max_calories,
+  desc = false,
+  offset = 0,
+  limit = 20
+}) {
+  const response = await api.get("/product/search/", {
+    params: { query, min_calories, max_calories, desc, offset, limit }
+  });
   return response.data;
 }
 
