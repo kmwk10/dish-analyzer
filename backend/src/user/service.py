@@ -1,6 +1,6 @@
 from typing import Optional, List
 from uuid import UUID
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 
 from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -131,15 +131,20 @@ class UserService:
         user = result.scalar_one_or_none()
         return user
 
-    @staticmethod
     async def upload_avatar(db: AsyncSession, user_id: UUID, file: UploadFile) -> Optional[str]:
         user = await UserService.get_user(db, user_id)
         if not user:
             return None
 
-        file_bytes = await file.read()
-        extension = file.filename.split(".")[-1]
+        if file.content_type not in ["image/jpeg", "image/png"]:
+            raise HTTPException(status_code=400, detail="Invalid file type")
 
+        file_bytes = await file.read()
+
+        if len(file_bytes) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large")
+
+        extension = file.filename.rsplit(".", 1)[-1]
         object_key = f"avatars/{uuid.uuid4()}.{extension}"
 
         if user.avatar_key:
@@ -153,7 +158,6 @@ class UserService:
 
         return object_key
 
-
     @staticmethod
     async def get_avatar_url(db: AsyncSession, user_id: UUID) -> Optional[str]:
         user = await UserService.get_user(db, user_id)
@@ -161,7 +165,6 @@ class UserService:
             return None
 
         return generate_presigned_url(user.avatar_key)
-
 
     @staticmethod
     async def delete_avatar(db: AsyncSession, user_id: UUID) -> bool:
