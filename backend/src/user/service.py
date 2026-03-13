@@ -1,10 +1,13 @@
 from typing import Optional, List
 from uuid import UUID
+from fastapi import UploadFile
 
 from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
+import uuid
 
 from ..auth.security import verify_password, hash_password
+from ..s3 import upload_file, delete_file, generate_presigned_url
 from ..dish import Dish
 from ..product import Product
 
@@ -127,3 +130,48 @@ class UserService:
         await db.commit()
         user = result.scalar_one_or_none()
         return user
+
+    @staticmethod
+    async def upload_avatar(db: AsyncSession, user_id: UUID, file: UploadFile) -> Optional[str]:
+        user = await UserService.get_user(db, user_id)
+        if not user:
+            return None
+
+        file_bytes = await file.read()
+        extension = file.filename.split(".")[-1]
+
+        object_key = f"avatars/{uuid.uuid4()}.{extension}"
+
+        if user.avatar_key:
+            delete_file(user.avatar_key)
+
+        upload_file(object_key, file_bytes, file.content_type)
+
+        user.avatar_key = object_key
+        await db.commit()
+        await db.refresh(user)
+
+        return object_key
+
+
+    @staticmethod
+    async def get_avatar_url(db: AsyncSession, user_id: UUID) -> Optional[str]:
+        user = await UserService.get_user(db, user_id)
+        if not user or not user.avatar_key:
+            return None
+
+        return generate_presigned_url(user.avatar_key)
+
+
+    @staticmethod
+    async def delete_avatar(db: AsyncSession, user_id: UUID) -> bool:
+        user = await UserService.get_user(db, user_id)
+        if not user or not user.avatar_key:
+            return False
+
+        delete_file(user.avatar_key)
+
+        user.avatar_key = None
+        await db.commit()
+
+        return True

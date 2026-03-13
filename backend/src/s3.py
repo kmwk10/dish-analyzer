@@ -1,7 +1,9 @@
 import os
+import io
 from minio import Minio
 from minio.error import S3Error
 from typing import Optional
+from datetime import timedelta
 
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
@@ -21,10 +23,12 @@ if not client.bucket_exists(MINIO_BUCKET):
 
 
 def upload_file(object_name: str, file_data: bytes, content_type: str) -> None:
+    file_stream = io.BytesIO(file_data)
+
     client.put_object(
         bucket_name=MINIO_BUCKET,
         object_name=object_name,
-        data=file_data,
+        data=file_stream,
         length=len(file_data),
         content_type=content_type
     )
@@ -42,7 +46,7 @@ def generate_presigned_url(object_name: str, expires: int = 3600) -> Optional[st
         url = client.presigned_get_object(
             bucket_name=MINIO_BUCKET,
             object_name=object_name,
-            expires=expires
+            expires=timedelta(seconds=expires)
         )
         return url
     except S3Error as e:
