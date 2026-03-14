@@ -50,15 +50,17 @@ class DishService:
     @staticmethod
     async def search_dishes(
         db: AsyncSession,
-        query: str,
+        query: str | None = None,
         min_calories: float | None = None,
         max_calories: float | None = None,
         desc: bool = False,
         offset: int = 0,
         limit: int = 20
     ) -> List[Dish]:
+        stmt = select(Dish)
 
-        stmt = select(Dish).where(Dish.name.ilike(f"%{query}%"))
+        if query:
+            stmt = stmt.where(Dish.name.ilike(f"%{query}%"))
 
         if min_calories is not None:
             stmt = stmt.where(Dish.calories >= min_calories)

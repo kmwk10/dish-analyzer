@@ -67,7 +67,7 @@ async def list_dishes_endpoint(
 
 @router.get("/search/", response_model=List[DishOut])
 async def search_dishes_endpoint(
-    query: str = Query(..., min_length=1),
+    query: str | None = Query(None),
     min_calories: float | None = None,
     max_calories: float | None = None,
     desc: bool = False,

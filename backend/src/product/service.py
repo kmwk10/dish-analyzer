@@ -76,17 +76,22 @@ class ProductService:
     @staticmethod
     async def search_products(
         db: AsyncSession,
-        query: str,
+        query: str | None = None,
         min_calories: float | None = None,
         max_calories: float | None = None,
         desc: bool = False,
         offset: int = 0,
         limit: int = 20
     ) -> List[Product]:
-        stmt = select(Product).where(Product.name.ilike(f"%{query}%"))
+
+        stmt = select(Product)
+
+        if query:
+            stmt = stmt.where(Product.name.ilike(f"%{query}%"))
 
         if min_calories is not None:
             stmt = stmt.where(Product.calories >= min_calories)
+
         if max_calories is not None:
             stmt = stmt.where(Product.calories <= max_calories)
 

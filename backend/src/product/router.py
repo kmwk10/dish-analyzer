@@ -66,7 +66,7 @@ async def list_products_endpoint(
 
 @router.get("/search/", response_model=List[ProductOut])
 async def search_products_endpoint(
-    query: str = Query(..., min_length=1),
+    query: str | None = Query(None),
     min_calories: float | None = None,
     max_calories: float | None = None,
     desc: bool = False,
