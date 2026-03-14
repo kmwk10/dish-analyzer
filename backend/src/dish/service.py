@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, delete, desc as sa_desc
+from sqlalchemy import select, delete, desc as sa_desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Dish, DishProduct
@@ -68,7 +68,7 @@ class DishService:
         if max_calories is not None:
             stmt = stmt.where(Dish.calories <= max_calories)
 
-        stmt = stmt.order_by(Dish.created_at if desc else sa_desc(Dish.created_at))
+        stmt = stmt.order_by(sa_desc(Dish.created_at) if desc else asc(Dish.created_at))
         stmt = stmt.offset(offset).limit(limit)
 
         result = await db.execute(stmt)

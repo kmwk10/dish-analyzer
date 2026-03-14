@@ -1,7 +1,7 @@
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import select, desc as sa_desc
+from sqlalchemy import select, desc as sa_desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Product
@@ -95,7 +95,7 @@ class ProductService:
         if max_calories is not None:
             stmt = stmt.where(Product.calories <= max_calories)
 
-        stmt = stmt.order_by(Product.created_at if desc else sa_desc(Product.created_at))
+        stmt = stmt.order_by(sa_desc(Product.created_at) if desc else asc(Product.created_at))
         stmt = stmt.offset(offset).limit(limit)
 
         result = await db.execute(stmt)
