@@ -2,7 +2,7 @@ from typing import Optional, List
 from uuid import UUID
 from fastapi import HTTPException, UploadFile
 
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
@@ -74,6 +74,7 @@ class UserService:
             select(Dish)
             .join(FavoriteDish)
             .where(FavoriteDish.user_id == user_id)
+            .order_by(asc(Dish.created_at))
         )
         return result.scalars().all()
 
@@ -83,6 +84,7 @@ class UserService:
             select(Product)
             .join(FavoriteProduct)
             .where(FavoriteProduct.user_id == user_id)
+            .order_by(asc(Product.created_at))
         )
         return result.scalars().all()
 
