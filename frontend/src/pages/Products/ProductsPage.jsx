@@ -102,7 +102,7 @@ export default function ProductsPage() {
       };
       const savedProduct = await saveProduct(payload, currentUserId);
 
-      setFavoriteProducts(prev => [...prev.filter(p => p.id !== product.id && p.id !== savedProduct.id), savedProduct]);
+      setFavoriteProducts(prev => [savedProduct, ...prev.filter(p => p.id !== product.id && p.id !== savedProduct.id)]);
       setProducts(prev => [...prev.filter(p => p.id !== product.id), savedProduct]);
 
       setSelectedProduct(savedProduct);
