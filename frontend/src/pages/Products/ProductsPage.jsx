@@ -1,4 +1,4 @@
-import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
+import { Card, Box, Input, Button, Select, useOutsideClick, InputGroup, InputRightElement } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
@@ -26,10 +26,19 @@ export default function ProductsPage() {
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+
   const [products, setProducts] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои продукты" : "Все продукты");
+  const [minCalories, setMinCalories] = useState("");
+  const [maxCalories, setMaxCalories] = useState("");
+  const [desc, setDesc] = useState(true);
+
+  const [selectedSection, setSelectedSection] = useState(
+    isAuthenticated ? "Мои продукты" : "Все продукты"
+  );
+
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -42,8 +51,7 @@ export default function ProductsPage() {
       try {
         const favProducts = await getFavoriteProducts();
         setFavoriteProducts(favProducts);
-      } catch (err) {
-        console.error(err);
+      } catch {
         navigate("/auth");
       }
     }
@@ -51,55 +59,51 @@ export default function ProductsPage() {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    async function fetchProducts() {
-      try {
-        if (selectedSection === "Мои продукты") {
-          const start = (page - 1) * limit;
-          setProducts(favoriteProducts.slice(start, start + limit));
-        } else {
-          const offset = (page - 1) * limit;
-          let data;
-          if (!searchQuery.trim()) {
-            data = await listProducts({ offset, limit });
-          } else {
-            data = await searchProducts({ query: searchQuery.trim(), offset, limit });
-          }
-          setProducts(data);
-        }
-      } catch (err) {
-        console.error(err);
+    async function fetchData() {
+      const offset = (page - 1) * limit;
+
+      if (selectedSection === "Мои продукты") {
+        setProducts(favoriteProducts.slice(offset, offset + limit));
+      } else {
+        const queryTrimmed = searchQuery.trim();
+        const min = minCalories ? Number(minCalories) : undefined;
+        const max = maxCalories ? Number(maxCalories) : undefined;
+
+        let data;
+        data = await searchProducts({
+          query: queryTrimmed || undefined,
+          min_calories: min,
+          max_calories: max,
+          offset,
+          limit,
+          desc
+        });
+
+        setProducts(data);
       }
     }
-    fetchProducts();
-  }, [selectedSection, favoriteProducts, page, searchQuery]);
+
+    fetchData();
+  }, [selectedSection, favoriteProducts, searchQuery, minCalories, maxCalories, page, desc]);
 
   useOutsideClick({ ref: cardRef, handler: () => setSelectedProduct(null) });
   useOutsideClick({ ref: editRef, handler: () => setEditingProduct(null) });
 
   async function handleSaveProduct(product) {
-    if (!product) {
-      setEditingProduct(null);
-      return;
-    }
+    if (!product) return setEditingProduct(null);
+
     try {
       const payload = {
         ...product,
         calories: toNumber(product.calories),
         protein: toNumber(product.protein),
         fat: toNumber(product.fat),
-        carbs: toNumber(product.carbs),
+        carbs: toNumber(product.carbs)
       };
       const savedProduct = await saveProduct(payload, currentUserId);
 
-      setFavoriteProducts(prev => {
-        const filtered = prev.filter(p => p.id !== savedProduct.id && p.id !== product.id);
-        return [...filtered, savedProduct];
-      });
-
-      setProducts(prev => {
-        const filtered = prev.filter(p => p.id !== product.id);
-        return [...filtered, savedProduct];
-      });
+      setFavoriteProducts(prev => [...prev.filter(p => p.id !== product.id && p.id !== savedProduct.id), savedProduct]);
+      setProducts(prev => [...prev.filter(p => p.id !== product.id), savedProduct]);
 
       setSelectedProduct(savedProduct);
       setEditingProduct(null);
@@ -131,7 +135,48 @@ export default function ProductsPage() {
     }
   }
 
-  const itemsLength = selectedSection === "Мои продукты" ? favoriteProducts.length : 10000; // для всех продуктов API подгружает по limit
+  function handleSearchChange(value) {
+    setSearchQuery(value);
+    setPage(1);
+    if (value.trim() && selectedSection === "Мои продукты") {
+      setSelectedSection("Все продукты");
+    }
+  }
+
+  function handleMinCaloriesChange(value) {
+    setMinCalories(value);
+    setPage(1);
+    if (value && selectedSection === "Мои продукты") {
+      setSelectedSection("Все продукты");
+    }
+  }
+
+  function handleMaxCaloriesChange(value) {
+    setMaxCalories(value);
+    setPage(1);
+    if (value && selectedSection === "Мои продукты") {
+      setSelectedSection("Все продукты");
+    }
+  }
+
+  function handleSortChange(value) {
+    setDesc(value === "desc");
+    setPage(1);
+  }
+
+  function handleSectionChange(option) {
+    if (option === "Мои продукты" && !isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+    if (option === "Мои продукты") {
+      setSearchQuery("");
+      setMinCalories("");
+      setMaxCalories("");
+    }
+    setSelectedSection(option);
+    setPage(1);
+  }
 
   return (
     <Box margin="2vh 10vw">
@@ -139,25 +184,56 @@ export default function ProductsPage() {
         option1="Мои продукты"
         option2="Все продукты"
         value={selectedSection}
-        onChange={(option) => {
-          if (option === "Мои продукты" && !isAuthenticated) {
-            navigate("/auth");
-            return;
-          }
-          setSelectedSection(option);
-          setPage(1);
-        }}
+        onChange={handleSectionChange}
       />
 
       <Input
         size="lg"
         placeholder="Введите название продукта"
         background="white"
-        marginBottom="3vh"
+        marginBottom="1.5vh"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") setPage(1); }}
+        onChange={e => handleSearchChange(e.target.value)}
       />
+
+    <Box display="flex" gap="1rem" marginBottom="3vh">
+      {selectedSection === "Все продукты" && (
+        <>
+          <InputGroup width="7rem">
+            <Input
+              type="number"
+              placeholder="Мин."
+              value={minCalories}
+              onChange={e => handleMinCaloriesChange(e.target.value)}
+              pr="3rem"
+              background="white"
+            />
+            <InputRightElement children="ккал" mr="0.5rem"/>
+          </InputGroup>
+          <InputGroup width="7rem">
+            <Input
+              type="number"
+              placeholder="Макс."
+              value={maxCalories}
+              onChange={e => handleMaxCaloriesChange(e.target.value)}
+              pr="3rem"
+              background="white"
+            />
+            <InputRightElement children="ккал" mr="0.5rem"/>
+          </InputGroup>
+
+          <Select
+            w="11rem"
+            background="white"
+            value={desc ? "desc" : "asc"}
+            onChange={(e) => handleSortChange(e.target.value)}
+          >
+            <option value="desc">Сначала новые</option>
+            <option value="asc">Сначала старые</option>
+          </Select>
+        </>
+      )}
+    </Box>
 
       <Button
         size="md"
@@ -166,10 +242,7 @@ export default function ProductsPage() {
         colorScheme="purple"
         marginBottom="3vh"
         onClick={() => {
-          if (!isAuthenticated) {
-            navigate("/auth");
-            return;
-          }
+          if (!isAuthenticated) return navigate("/auth");
           setEditingProduct({ name: "", calories: "", protein: "", fat: "", carbs: "" });
         }}
       >
@@ -186,12 +259,7 @@ export default function ProductsPage() {
             setFavoriteProducts={setFavoriteProducts}
             currentUserId={currentUserId}
           />
-          <Pagination
-            page={page}
-            setPage={setPage}
-            itemsLength={products.length}
-            limit={limit}
-          />
+          <Pagination page={page} setPage={setPage} itemsLength={products.length} limit={limit} />
         </>
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
