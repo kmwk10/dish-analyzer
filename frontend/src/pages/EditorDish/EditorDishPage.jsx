@@ -26,13 +26,13 @@ import EditorDishCard from "./EditorDishCard";
 import EditorProductsList from "./EditorProductsList";
 import ProductEditor from "../Products/ProductEditor";
 import ToggleCards from "../../components/ToggleCards";
-
+import Pagination from "../../components/Pagination";
 
 export default function EditorPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { currentUserId } = useContext(AuthContext);
-  
+
   const isNew = id === "new";
   const [products, setProducts] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
@@ -42,6 +42,8 @@ export default function EditorPage() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [localProducts, setLocalProducts] = useState([]);
   const [productWeights, setProductWeights] = useState({});
+  const [page, setPage] = useState(1);
+  const limit = 8;
 
   const editRef = useRef();
 
@@ -55,15 +57,18 @@ export default function EditorPage() {
 
   useEffect(() => {
     async function fetchProducts() {
+      const offset = (page - 1) * limit;
+
       if (selectedSection === "Мои продукты") {
-        setProducts(favoriteProducts);
+        setProducts(favoriteProducts.slice(offset, offset + limit));
       } else {
-        const all = await listProducts();
-        setProducts(all);
+        const queryTrimmed = searchQuery.trim() || undefined;
+        const data = await searchProducts({ query: queryTrimmed, offset, limit });
+        setProducts(data);
       }
     }
     fetchProducts();
-  }, [selectedSection, favoriteProducts]);
+  }, [selectedSection, searchQuery, favoriteProducts, page]);
 
   useOutsideClick({
     ref: editRef,
@@ -71,10 +76,7 @@ export default function EditorPage() {
   });
 
   async function handleSaveProduct(product) {
-    if (!product) {
-      setEditingProduct(null);
-      return;
-    }
+    if (!product) return setEditingProduct(null);
 
     try {
       const payload = {
@@ -87,15 +89,8 @@ export default function EditorPage() {
 
       const savedProduct = await saveProduct(payload, currentUserId);
 
-      setFavoriteProducts(prev => {
-        const filtered = prev.filter(p => p.id !== savedProduct.id && p.id !== product.id);
-        return [...filtered, savedProduct];
-      });
-
-      setProducts(prev => {
-        const filtered = prev.filter(p => p.id !== product.id);
-        return [...filtered, savedProduct];
-      });
+      setFavoriteProducts(prev => [savedProduct, ...prev.filter(p => p.id !== savedProduct.id)]);
+      setProducts(prev => [savedProduct, ...prev.filter(p => p.id !== savedProduct.id)]);
 
       setEditingProduct(null);
     } catch (err) {
@@ -107,11 +102,7 @@ export default function EditorPage() {
     try {
       await removeFavoriteProduct(productId);
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
-
-      if (editingProduct?.id === productId) {
-        setEditingProduct(null);
-      }
-
+      if (editingProduct?.id === productId) setEditingProduct(null);
     } catch (err) {
       console.error(err);
     }
@@ -129,12 +120,9 @@ export default function EditorPage() {
   async function handleDeleteProduct(productId) {
     try {
       await deleteProduct(productId);
-
       setProducts(prev => prev.filter(p => p.id !== productId));
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
-
       if (editingProduct?.id === productId) setEditingProduct(null);
-
     } catch (err) {
       console.error(err);
     }
@@ -150,17 +138,11 @@ export default function EditorPage() {
 
           const localProds = dishProducts.map(p => {
             const productInfo = allProducts.find(prod => prod.id === p.product_id);
-            return {
-              id: p.product_id,
-              name: productInfo?.name,
-              weight: p.weight,
-            };
+            return { id: p.product_id, name: productInfo?.name, weight: p.weight };
           });
 
           const weights = {};
-          localProds.forEach(p => {
-            weights[p.id] = p.weight;
-          });
+          localProds.forEach(p => { weights[p.id] = p.weight; });
 
           setDish({ ...data, products: localProds });
           setLocalProducts(localProds);
@@ -169,7 +151,6 @@ export default function EditorPage() {
           console.error("Не удалось загрузить блюдо", err);
         }
       }
-
       fetchDish();
     }
   }, [id, isNew]);
@@ -180,45 +161,26 @@ export default function EditorPage() {
 
   const handleRemoveProduct = (id) => {
     setLocalProducts(prev => prev.filter(p => p.id !== id));
-    setProductWeights(prev => {
-      const newWeights = { ...prev };
-      delete newWeights[id];
-      return newWeights;
-    });
+    setProductWeights(prev => { const newWeights = { ...prev }; delete newWeights[id]; return newWeights; });
   };
 
-  function handleAddProduct(product) {
+  const handleAddProduct = (product) => {
     setLocalProducts(prev => {
       if (prev.some(p => p.id === product.id)) return prev;
-
-      return [
-        ...prev,
-        {
-          id: product.id,
-          name: product.name,
-          weight: "",
-        },
-      ];
+      return [{ id: product.id, name: product.name, weight: "" }, ...prev];
     });
+    setProductWeights(prev => ({ ...prev, [product.id]: "" }));
+  };
 
-    setProductWeights(prev => ({
-      ...prev,
-      [product.id]: "",
-    }));
-  }
-
-  async function handleSave(formData) {
+  const handleSaveDish = async (formData) => {
     try {
       const dishPayload = {
         id: dish?.id,
         created_by: dish?.created_by,
-
         name: formData.name,
         recipe: formData.recipe || null,
-
         weight: toNumber(formData.weight),
         servings: formData.servings ? toNumber(formData.servings) : null,
-
         calories: toNumber(formData.calories),
         protein: toNumber(formData.protein),
         fat: toNumber(formData.fat),
@@ -234,20 +196,12 @@ export default function EditorPage() {
 
       await updateDishProducts(savedDish.id, productsPayload);
 
-      setDish({
-        ...savedDish,
-        products: localProducts.map(p => ({
-          id: p.id,
-          weight: productWeights[p.id],
-          name: p.name,
-        })),
-      });
+      setDish({ ...savedDish, products: localProducts.map(p => ({ id: p.id, weight: productWeights[p.id], name: p.name })) });
       navigate("/dishes");
-
     } catch (err) {
       console.error(err);
     }
-  }
+  };
 
   const handleRemoveFavDish = async (dishId) => {
     try {
@@ -256,6 +210,12 @@ export default function EditorPage() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    setPage(1);
+    if (value.trim() && selectedSection === "Мои продукты") {setSelectedSection("Все продукты")};
   };
 
   return (
@@ -267,7 +227,7 @@ export default function EditorPage() {
           productWeights={productWeights}
           handleWeightChange={handleWeightChange}
           handleRemoveProduct={handleRemoveProduct}
-          onSave={handleSave}
+          onSave={handleSaveDish}
           onRemoveFavDish={handleRemoveFavDish}
           onDelete={handleDeleteDish}
           currentUserId={currentUserId}
@@ -280,68 +240,49 @@ export default function EditorPage() {
           option1="Мои продукты"
           option2="Все продукты"
           value={selectedSection}
-          onChange={(option) => setSelectedSection(option)}
+            onChange={option => {
+              setSelectedSection(option);
+              setPage(1);
+              if (option === "Мои продукты") {
+                setSearchQuery("");
+              }
+            }}
         />
         <Input
           size="lg"
           placeholder="Введите название продукта"
           background="white"
-          marginBottom="3vh"
+          marginBottom="1.5vh"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              const query = searchQuery.trim();
-
-              if (selectedSection === "Мои продукты") {
-                if (!query) {
-                  setProducts(favoriteProducts);
-                } else {
-                  const filtered = favoriteProducts.filter(p =>
-                    p.name.toLowerCase().includes(query.toLowerCase())
-                  );
-                  setProducts(filtered);
-                }
-              } else {
-                if (!query) {
-                  listProducts().then(setProducts);
-                } else {
-                  searchProducts(query).then(setProducts);
-                }
-              }
-            }
-          }}
+          onChange={e => handleSearchChange(e.target.value)}
         />
         <Button size="sm"
           leftIcon={<SmallAddIcon/>}
           height="2.5rem"
           colorScheme="purple"
           marginBottom="3vh"
-          onClick={() =>
-            setEditingProduct({
-              name: "",
-              calories: "",
-              protein: "",
-              fat: "",
-              carbs: "",
-            })
-          }
+          onClick={() => setEditingProduct({ name: "", calories: "", protein: "", fat: "", carbs: "" })}
         >
           Добавить продукт
         </Button>
+
         {products.length > 0 ? (
-          <EditorProductsList
-            products={products} 
-            setEditingProduct={setEditingProduct}
-            onAddProduct={handleAddProduct}
-            favoriteProducts={favoriteProducts}
-            setFavoriteProducts={setFavoriteProducts}
-          />
+          <>
+            <EditorProductsList
+              products={products}
+              setEditingProduct={setEditingProduct}
+              onAddProduct={handleAddProduct}
+              favoriteProducts={favoriteProducts}
+              setFavoriteProducts={setFavoriteProducts}
+            />
+            <Pagination page={page} setPage={setPage} itemsLength={products.length} limit={limit} />
+          </>
         ) : (
           <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
             Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
           </Card>
         )}
+
         {editingProduct && (
           <ProductEditor
             ref={editRef}
