@@ -250,22 +250,20 @@ export default function ProductsPage() {
       </Button>
 
       {products.length > 0 ? (
-        <>
-          <ProductsList
-            products={products}
-            setSelectedProduct={setSelectedProduct}
-            setEditingProduct={setEditingProduct}
-            favoriteProducts={favoriteProducts}
-            setFavoriteProducts={setFavoriteProducts}
-            currentUserId={currentUserId}
-          />
-          <Pagination page={page} setPage={setPage} itemsLength={products.length} limit={limit} />
-        </>
+        <ProductsList
+          products={products}
+          setSelectedProduct={setSelectedProduct}
+          setEditingProduct={setEditingProduct}
+          favoriteProducts={favoriteProducts}
+          setFavoriteProducts={setFavoriteProducts}
+          currentUserId={currentUserId}
+        />
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
         </Card>
       )}
+      <Pagination page={page} setPage={setPage} itemsLength={products.length} limit={limit} />
 
       {selectedProduct && (
         <ProductCard

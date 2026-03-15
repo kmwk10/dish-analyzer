@@ -222,21 +222,19 @@ export default function DishesPage() {
       </Button>
 
       {dishes.length > 0 ? (
-        <>
-          <DishesList
-            dishes={dishes}
-            setSelectedDish={setSelectedDish}
-            favoriteDishes={favoriteDishes}
-            setFavoriteDishes={setFavoriteDishes}
-            isAuthenticated={isAuthenticated}
-          />
-          <Pagination page={page} setPage={setPage} itemsLength={dishes.length} limit={limit} />
-        </>
+        <DishesList
+          dishes={dishes}
+          setSelectedDish={setSelectedDish}
+          favoriteDishes={favoriteDishes}
+          setFavoriteDishes={setFavoriteDishes}
+          isAuthenticated={isAuthenticated}
+        />
       ) : (
         <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить блюдо.
         </Card>
       )}
+      <Pagination page={page} setPage={setPage} itemsLength={dishes.length} limit={limit} />
 
       {selectedDish && (
         <DishCard
