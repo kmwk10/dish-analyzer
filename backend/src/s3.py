@@ -6,6 +6,7 @@ from typing import Optional
 from datetime import timedelta
 
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
+MINIO_EXTERNAL_URL = os.getenv("MINIO_EXTERNAL_URL")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 MINIO_BUCKET = os.getenv("MINIO_BUCKET")
@@ -40,10 +41,17 @@ def delete_file(object_name: str) -> None:
     except S3Error as e:
         print(f"MinIO delete error: {e}")
 
-
-def generate_presigned_url(object_name: str, expires: int = 3600) -> Optional[str]:
+def generate_presigned_url(object_name: str, expires: int = 3600):
     try:
-        url = client.presigned_get_object(
+        signing_client = Minio(
+            MINIO_EXTERNAL_URL,
+            access_key=MINIO_ACCESS_KEY,
+            secret_key=MINIO_SECRET_KEY,
+            secure=USE_SECURE,
+            region="us-east-1"
+        )
+        
+        url = signing_client.presigned_get_object(
             bucket_name=MINIO_BUCKET,
             object_name=object_name,
             expires=timedelta(seconds=expires)

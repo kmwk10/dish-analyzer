@@ -147,7 +147,7 @@ class UserService:
             raise HTTPException(status_code=400, detail="File too large")
 
         extension = file.filename.rsplit(".", 1)[-1]
-        object_key = f"avatars/{uuid.uuid4()}.{extension}"
+        object_key = f"{uuid.uuid4()}.{extension}"
 
         if user.avatar_key:
             delete_file(user.avatar_key)
