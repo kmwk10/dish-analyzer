@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from typing import List
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -120,3 +120,39 @@ async def update_user_role_endpoint(
     if not updated:
         raise HTTPException(status_code=404, detail="User not found")
     return {"detail": f"User role updated to {data.role}"}
+
+@router.post("/me/avatar", response_model=dict)
+async def upload_avatar_endpoint(
+    file: UploadFile = File(...),
+    current_user: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    avatar_key = await UserService.upload_avatar(db, current_user, file)
+    if not avatar_key:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"detail": "Avatar uploaded successfully"}
+
+@router.get("/me/avatar", response_model=dict)
+async def get_avatar_endpoint(
+    current_user: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    avatar_url = await UserService.get_avatar_url(db, current_user)
+
+    if not avatar_url:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    return {"avatar_url": avatar_url}
+
+@router.delete("/me/avatar", response_model=dict)
+async def delete_avatar_endpoint(
+    current_user: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    deleted = await UserService.delete_avatar(db, current_user)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    return {"detail": "Avatar deleted successfully"}

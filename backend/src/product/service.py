@@ -1,7 +1,7 @@
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, desc as sa_desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Product
@@ -63,22 +63,42 @@ class ProductService:
     @staticmethod
     async def list_products(
         db: AsyncSession,
-        skip: int = 0,
-        limit: int = 100
+        offset: int = 0,
+        limit: int = 20
     ) -> List[Product]:
         result = await db.execute(
-            select(Product).offset(skip).limit(limit)
+            select(Product)
+            .offset(offset)
+            .limit(limit)
         )
         return result.scalars().all()
 
     @staticmethod
     async def search_products(
         db: AsyncSession,
-        query: str
+        query: str | None = None,
+        min_calories: float | None = None,
+        max_calories: float | None = None,
+        desc: bool = False,
+        offset: int = 0,
+        limit: int = 20
     ) -> List[Product]:
-        result = await db.execute(
-            select(Product).where(Product.name.ilike(f"%{query}%"))
-        )
+
+        stmt = select(Product)
+
+        if query:
+            stmt = stmt.where(Product.name.ilike(f"%{query}%"))
+
+        if min_calories is not None:
+            stmt = stmt.where(Product.calories >= min_calories)
+
+        if max_calories is not None:
+            stmt = stmt.where(Product.calories <= max_calories)
+
+        stmt = stmt.order_by(sa_desc(Product.created_at) if desc else asc(Product.created_at))
+        stmt = stmt.offset(offset).limit(limit)
+
+        result = await db.execute(stmt)
         return result.scalars().all()
 
     @staticmethod

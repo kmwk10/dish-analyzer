@@ -9,7 +9,16 @@ export default function Navbar() {
   ];
 
   return (
-    <Card height="8vh" minHeight="3.5rem" fontSize="1.5rem">
+    <Card
+      position="fixed"
+      top="0"
+      left="0"
+      width="100%"
+      height="8vh"
+      minHeight="3.5rem"
+      fontSize="1.5rem"
+      zIndex={1000}
+    >
       <Flex flex="1" align="center" margin="0 10vw">
         {links.map((link) => (
           <Link

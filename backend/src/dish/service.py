@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, desc as sa_desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Dish, DishProduct
@@ -43,13 +43,35 @@ class DishService:
         return True
 
     @staticmethod
-    async def list_dishes(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Dish]:
-        result = await db.execute(select(Dish).offset(skip).limit(limit))
+    async def list_dishes(db: AsyncSession, offset: int = 0, limit: int = 20) -> List[Dish]:
+        result = await db.execute(select(Dish).offset(offset).limit(limit))
         return result.scalars().all()
 
     @staticmethod
-    async def search_dishes(db: AsyncSession, query: str) -> List[Dish]:
-        result = await db.execute(select(Dish).where(Dish.name.ilike(f"%{query}%")))
+    async def search_dishes(
+        db: AsyncSession,
+        query: str | None = None,
+        min_calories: float | None = None,
+        max_calories: float | None = None,
+        desc: bool = False,
+        offset: int = 0,
+        limit: int = 20
+    ) -> List[Dish]:
+        stmt = select(Dish)
+
+        if query:
+            stmt = stmt.where(Dish.name.ilike(f"%{query}%"))
+
+        if min_calories is not None:
+            stmt = stmt.where(Dish.calories >= min_calories)
+
+        if max_calories is not None:
+            stmt = stmt.where(Dish.calories <= max_calories)
+
+        stmt = stmt.order_by(sa_desc(Dish.created_at) if desc else asc(Dish.created_at))
+        stmt = stmt.offset(offset).limit(limit)
+
+        result = await db.execute(stmt)
         return result.scalars().all()
 
     @staticmethod

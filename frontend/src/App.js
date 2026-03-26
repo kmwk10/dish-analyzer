@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useContext } from "react";
+import { Box } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 import AuthPage from "./pages/Auth/AuthPage";
 import DishesPage from "./pages/Dishes/DishesPage";
@@ -21,15 +22,17 @@ function App() {
   return (
     <>
       {!hideNavbar && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Navigate to="/dishes" replace />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dishes" element={<DishesPage />} />
-        <Route path="/dishes/editor/:id" element={<PrivateRoute><EditorDishPage /></PrivateRoute>} />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
-        <Route path="/*" element={<NotFoundPage />} />
-      </Routes>
+      <Box pt="8vh">
+        <Routes>
+          <Route path="/" element={<Navigate to="/dishes" replace />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/dishes" element={<DishesPage />} />
+          <Route path="/dishes/editor/:id" element={<PrivateRoute><EditorDishPage /></PrivateRoute>} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+          <Route path="/*" element={<NotFoundPage />} />
+        </Routes>
+      </Box>
     </>
   );
 }

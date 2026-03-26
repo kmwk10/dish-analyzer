@@ -1,4 +1,4 @@
-import { Card, Box, Input, Button, useOutsideClick } from "@chakra-ui/react";
+import { Card, Box, Input, Button, Select, useOutsideClick, InputGroup, InputRightElement } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,78 +18,79 @@ import ToggleCards from "../../components/ToggleCards";
 import ProductsList from "./ProductsList";
 import ProductCard from "./ProductCard";
 import ProductEditor from "./ProductEditor";
+import Pagination from "../../components/Pagination";
 
 export default function ProductsPage() {
   const navigate = useNavigate();
-
-  const { 
-    isAuthenticated, 
-    currentUserId, 
-    userRole 
-  } = useContext(AuthContext);
+  const { isAuthenticated, currentUserId, userRole } = useContext(AuthContext);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+
   const [products, setProducts] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSection, setSelectedSection] = useState(isAuthenticated ? "Мои продукты" : "Все продукты");
 
-  const cardRef = useRef()
+  const [searchQuery, setSearchQuery] = useState("");
+  const [minCalories, setMinCalories] = useState("");
+  const [maxCalories, setMaxCalories] = useState("");
+  const [desc, setDesc] = useState(true);
+
+  const [selectedSection, setSelectedSection] = useState(
+    isAuthenticated ? "Мои продукты" : "Все продукты"
+  );
+
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const cardRef = useRef();
   const editRef = useRef();
 
   useEffect(() => {
     if (!isAuthenticated) return;
-
     async function fetchFavorites() {
       try {
         const favProducts = await getFavoriteProducts();
         setFavoriteProducts(favProducts);
-      } catch (err) {
-        console.error(err);
+      } catch {
         navigate("/auth");
       }
     }
-
     fetchFavorites();
-  }, [isAuthenticated]);
-
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    async function fetchProducts() {
-      try {
-        if (selectedSection === "Мои продукты") {
-          if (!isAuthenticated) {
-            navigate("/auth");
-            return;
-          }
-          setProducts(favoriteProducts);
-        } else {
-          const all = await listProducts();
-          setProducts(all);
-        }
-      } catch (err) {
-        console.error(err);
+    async function fetchData() {
+      const offset = (page - 1) * limit;
+
+      if (selectedSection === "Мои продукты") {
+        setProducts(favoriteProducts.slice(offset, offset + limit));
+      } else {
+        const queryTrimmed = searchQuery.trim();
+        const min = minCalories ? Number(minCalories) : undefined;
+        const max = maxCalories ? Number(maxCalories) : undefined;
+
+        let data;
+        data = await searchProducts({
+          query: queryTrimmed || undefined,
+          min_calories: min,
+          max_calories: max,
+          offset,
+          limit,
+          desc
+        });
+
+        setProducts(data);
       }
     }
-    fetchProducts();
-  }, [selectedSection, favoriteProducts, isAuthenticated]);
 
-  useOutsideClick({
-    ref: cardRef,
-    handler: () => setSelectedProduct(null),
-  });
+    fetchData();
+  }, [selectedSection, favoriteProducts, searchQuery, minCalories, maxCalories, page, desc]);
 
-  useOutsideClick({
-    ref: editRef,
-    handler: () => setEditingProduct(null),
-  });
+  useOutsideClick({ ref: cardRef, handler: () => setSelectedProduct(null) });
+  useOutsideClick({ ref: editRef, handler: () => setEditingProduct(null) });
 
   async function handleSaveProduct(product) {
-    if (!product) {
-      setEditingProduct(null);
-      return;
-    }
+    if (!product) return setEditingProduct(null);
 
     try {
       const payload = {
@@ -97,20 +98,12 @@ export default function ProductsPage() {
         calories: toNumber(product.calories),
         protein: toNumber(product.protein),
         fat: toNumber(product.fat),
-        carbs: toNumber(product.carbs),
+        carbs: toNumber(product.carbs)
       };
-
       const savedProduct = await saveProduct(payload, currentUserId);
 
-      setFavoriteProducts(prev => {
-        const filtered = prev.filter(p => p.id !== savedProduct.id && p.id !== product.id);
-        return [...filtered, savedProduct];
-      });
-
-      setProducts(prev => {
-        const filtered = prev.filter(p => p.id !== product.id);
-        return [...filtered, savedProduct];
-      });
+      setFavoriteProducts(prev => [savedProduct, ...prev.filter(p => p.id !== product.id && p.id !== savedProduct.id)]);
+      setProducts(prev => [...prev.filter(p => p.id !== product.id), savedProduct]);
 
       setSelectedProduct(savedProduct);
       setEditingProduct(null);
@@ -123,14 +116,8 @@ export default function ProductsPage() {
     try {
       await removeFavoriteProduct(productId);
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
-
-      if (editingProduct?.id === productId) {
-        setEditingProduct(null);
-      }
-
-      if (selectedProduct?.id === productId) {
-        setSelectedProduct(null);
-      }
+      if (editingProduct?.id === productId) setEditingProduct(null);
+      if (selectedProduct?.id === productId) setSelectedProduct(null);
     } catch (err) {
       console.error(err);
     }
@@ -139,62 +126,115 @@ export default function ProductsPage() {
   async function handleDeleteProduct(productId) {
     try {
       await deleteProduct(productId);
-
       setProducts(prev => prev.filter(p => p.id !== productId));
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
-
       if (selectedProduct?.id === productId) setSelectedProduct(null);
       if (editingProduct?.id === productId) setEditingProduct(null);
-
     } catch (err) {
       console.error(err);
     }
   }
 
+  function handleSearchChange(value) {
+    setSearchQuery(value);
+    setPage(1);
+    if (value.trim() && selectedSection === "Мои продукты") {
+      setSelectedSection("Все продукты");
+    }
+  }
+
+  function handleMinCaloriesChange(value) {
+    setMinCalories(value);
+    setPage(1);
+    if (value && selectedSection === "Мои продукты") {
+      setSelectedSection("Все продукты");
+    }
+  }
+
+  function handleMaxCaloriesChange(value) {
+    setMaxCalories(value);
+    setPage(1);
+    if (value && selectedSection === "Мои продукты") {
+      setSelectedSection("Все продукты");
+    }
+  }
+
+  function handleSortChange(value) {
+    setDesc(value === "desc");
+    setPage(1);
+  }
+
+  function handleSectionChange(option) {
+    if (option === "Мои продукты" && !isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+    if (option === "Мои продукты") {
+      setSearchQuery("");
+      setMinCalories("");
+      setMaxCalories("");
+    }
+    setSelectedSection(option);
+    setPage(1);
+  }
+
   return (
     <Box margin="2vh 10vw">
-    <ToggleCards
-      option1="Мои продукты"
-      option2="Все продукты"
-      value={selectedSection}
-      onChange={(option) => {
-        if (option === "Мои продукты" && !isAuthenticated) {
-          navigate("/auth");
-          return;
-        }
-        setSelectedSection(option);
-      }}
-    />
+      <ToggleCards
+        option1="Мои продукты"
+        option2="Все продукты"
+        value={selectedSection}
+        onChange={handleSectionChange}
+      />
+
       <Input
         size="lg"
         placeholder="Введите название продукта"
         background="white"
-        marginBottom="3vh"
+        marginBottom="1.5vh"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            const query = searchQuery.trim();
-
-            if (selectedSection === "Мои продукты") {
-              if (!query) {
-                setProducts(favoriteProducts);
-              } else {
-                const filtered = favoriteProducts.filter(p =>
-                  p.name.toLowerCase().includes(query.toLowerCase())
-                );
-                setProducts(filtered);
-              }
-            } else {
-              if (!query) {
-                listProducts().then(setProducts);
-              } else {
-                searchProducts(query).then(setProducts);
-              }
-            }
-          }
-        }}
+        onChange={e => handleSearchChange(e.target.value)}
       />
+
+    <Box display="flex" gap="1rem" marginBottom="3vh">
+      {selectedSection === "Все продукты" && (
+        <>
+          <InputGroup width="7rem">
+            <Input
+              type="number"
+              placeholder="Мин."
+              value={minCalories}
+              onChange={e => handleMinCaloriesChange(e.target.value)}
+              pr="3rem"
+              background="white"
+            />
+            <InputRightElement children="ккал" mr="0.5rem"/>
+          </InputGroup>
+          <InputGroup width="7rem">
+            <Input
+              type="number"
+              placeholder="Макс."
+              value={maxCalories}
+              onChange={e => handleMaxCaloriesChange(e.target.value)}
+              pr="3rem"
+              background="white"
+            />
+            <InputRightElement children="ккал" mr="0.5rem"/>
+          </InputGroup>
+
+          <Select
+            w="11rem"
+            background="white"
+            value={desc ? "desc" : "asc"}
+            onChange={(e) => handleSortChange(e.target.value)}
+          >
+            <option value="desc">Сначала новые</option>
+            <option value="asc">Сначала старые</option>
+          </Select>
+        </>
+      )}
+    </Box>
+
       <Button
         size="md"
         leftIcon={<SmallAddIcon />}
@@ -202,21 +242,13 @@ export default function ProductsPage() {
         colorScheme="purple"
         marginBottom="3vh"
         onClick={() => {
-          if (!isAuthenticated) {
-            navigate("/auth");
-            return;
-          }
-          setEditingProduct({
-            name: "",
-            calories: "",
-            protein: "",
-            fat: "",
-            carbs: "",
-          });
+          if (!isAuthenticated) return navigate("/auth");
+          setEditingProduct({ name: "", calories: "", protein: "", fat: "", carbs: "" });
         }}
       >
         Добавить продукт
       </Button>
+
       {products.length > 0 ? (
         <ProductsList
           products={products}
@@ -231,14 +263,13 @@ export default function ProductsPage() {
           Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
         </Card>
       )}
+      <Pagination page={page} setPage={setPage} itemsLength={products.length} limit={limit} />
+
       {selectedProduct && (
         <ProductCard
           ref={cardRef}
           product={selectedProduct}
-          onEdit={() => {
-            setEditingProduct(selectedProduct);
-            setSelectedProduct(null);
-          }}
+          onEdit={() => { setEditingProduct(selectedProduct); setSelectedProduct(null); }}
           onRemoveFavorite={handleRemoveFavorite}
           onDelete={handleDeleteProduct}
           currentUserId={currentUserId}
@@ -246,6 +277,7 @@ export default function ProductsPage() {
           isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
         />
       )}
+
       {editingProduct && (
         <ProductEditor
           ref={editRef}
