@@ -168,6 +168,23 @@ export default function DishesPage() {
         <meta property="og:title" content="КБЖУ блюд" />
         <meta property="og:description" content="Список блюд с КБЖУ" />
         <meta property="og:type" content="website" />
+
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": dishes.map(dish => ({
+              "@type": "Dish",
+              "name": dish.name,
+              "nutrition": {
+                "@type": "NutritionInformation",
+                "calories": `${dish.calories} kcal`,
+                "proteinContent": `${dish.protein} g`,
+                "fatContent": `${dish.fat} g`,
+                "carbohydrateContent": `${dish.carbs} g`
+              }
+            }))
+          })}
+        </script>
       </Helmet>
 
       <Heading as="h1" position="absolute" left="-9999px">

@@ -190,6 +190,23 @@ export default function ProductsPage() {
         <meta property="og:title" content="КБЖУ продуктов" />
         <meta property="og:description" content="Список продуктов с КБЖУ" />
         <meta property="og:type" content="website" />
+
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": products.map(product => ({
+              "@type": "Product",
+              "name": product.name,
+              "nutrition": {
+                "@type": "NutritionInformation",
+                "calories": `${product.calories} kcal`,
+                "proteinContent": `${product.protein} g`,
+                "fatContent": `${product.fat} g`,
+                "carbohydrateContent": `${product.carbs} g`
+              }
+            }))
+          })}
+        </script>
       </Helmet>
 
       <Heading as="h1" position="absolute" left="-9999px">
