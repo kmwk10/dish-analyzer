@@ -2,6 +2,8 @@ import { Card, Box, Input, Button, Select, useOutsideClick, InputGroup, InputRig
 import { SmallAddIcon } from "@chakra-ui/icons";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { Heading } from "@chakra-ui/react";
 
 import { toNumber } from "../../utils/number";
 import {
@@ -180,6 +182,20 @@ export default function ProductsPage() {
 
   return (
     <Box margin="2vh 10vw">
+      <Helmet>
+        <title>КБЖУ продуктов</title>
+        <meta name="description" content="Список продуктов с калорийностью и пищевой ценностью (БЖУ)" />
+        <link rel="canonical" href={`${window.location.origin}/products`} />
+
+        <meta property="og:title" content="КБЖУ продуктов" />
+        <meta property="og:description" content="Список продуктов с КБЖУ" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+
+      <Heading as="h1" position="absolute" left="-9999px">
+        Список продуктов с КБЖУ
+      </Heading>
+
       <ToggleCards
         option1="Мои продукты"
         option2="Все продукты"

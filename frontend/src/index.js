@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { BrowserRouter } from "react-router-dom";
 import { ChakraProvider } from "@chakra-ui/react";
+import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -12,9 +13,11 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <ChakraProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <HelmetProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </HelmetProvider>
       </ChakraProvider>
     </BrowserRouter>
   </React.StrictMode>
