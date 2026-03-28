@@ -1,13 +1,12 @@
 import { Card, Box, Input, Button, Select, useOutsideClick, InputGroup, InputRightElement } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Heading } from "@chakra-ui/react";
 
 import { toNumber } from "../../utils/number";
 import {
-  listProducts,
   searchProducts,
   deleteProduct,
   getFavoriteProducts,
@@ -17,10 +16,10 @@ import {
 import { AuthContext } from "../../context/AuthContext";
 
 import ToggleCards from "../../components/ToggleCards";
-import ProductsList from "./ProductsList";
-import ProductCard from "./ProductCard";
-import ProductEditor from "./ProductEditor";
-import Pagination from "../../components/Pagination";
+const ProductsList = lazy(() => import("./ProductsList"));
+const ProductCard = lazy(() => import("./ProductCard"));
+const ProductEditor = lazy(() => import("./ProductEditor"));
+const Pagination = lazy(() => import("../../components/Pagination"));
 
 export default function ProductsPage() {
   const navigate = useNavigate();
@@ -33,6 +32,7 @@ export default function ProductsPage() {
   const [favoriteProducts, setFavoriteProducts] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [minCalories, setMinCalories] = useState("");
   const [maxCalories, setMaxCalories] = useState("");
   const [desc, setDesc] = useState(true);
@@ -46,6 +46,13 @@ export default function ProductsPage() {
 
   const cardRef = useRef();
   const editRef = useRef();
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -67,12 +74,11 @@ export default function ProductsPage() {
       if (selectedSection === "Мои продукты") {
         setProducts(favoriteProducts.slice(offset, offset + limit));
       } else {
-        const queryTrimmed = searchQuery.trim();
+        const queryTrimmed = debouncedQuery.trim();
         const min = minCalories ? Number(minCalories) : undefined;
         const max = maxCalories ? Number(maxCalories) : undefined;
 
-        let data;
-        data = await searchProducts({
+        const data = await searchProducts({
           query: queryTrimmed || undefined,
           min_calories: min,
           max_calories: max,
@@ -86,7 +92,7 @@ export default function ProductsPage() {
     }
 
     fetchData();
-  }, [selectedSection, favoriteProducts, searchQuery, minCalories, maxCalories, page, desc]);
+  }, [selectedSection, favoriteProducts, debouncedQuery, minCalories, maxCalories, page, desc]);
 
   useOutsideClick({ ref: cardRef, handler: () => setSelectedProduct(null) });
   useOutsideClick({ ref: editRef, handler: () => setEditingProduct(null) });
@@ -282,46 +288,55 @@ export default function ProductsPage() {
         Добавить продукт
       </Button>
 
-      {products.length > 0 ? (
-        <ProductsList
-          products={products}
-          setSelectedProduct={setSelectedProduct}
-          setEditingProduct={setEditingProduct}
-          favoriteProducts={favoriteProducts}
-          setFavoriteProducts={setFavoriteProducts}
-          currentUserId={currentUserId}
-        />
-      ) : (
-        <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
-          Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
-        </Card>
-      )}
-      <Pagination page={page} setPage={setPage} itemsLength={products.length} limit={limit} />
+      <Suspense fallback={<Card padding="3vh" backgroundColor="#ECECEC">Загрузка...</Card>}>
+        {products.length > 0 ? (
+          <ProductsList
+            products={products}
+            setSelectedProduct={setSelectedProduct}
+            setEditingProduct={setEditingProduct}
+            favoriteProducts={favoriteProducts}
+            setFavoriteProducts={setFavoriteProducts}
+            currentUserId={currentUserId}
+          />
+        ) : (
+          <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
+            Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить продукт.
+          </Card>
+        )}
+      </Suspense>
 
-      {selectedProduct && (
-        <ProductCard
-          ref={cardRef}
-          product={selectedProduct}
-          onEdit={() => { setEditingProduct(selectedProduct); setSelectedProduct(null); }}
-          onRemoveFavorite={handleRemoveFavorite}
-          onDelete={handleDeleteProduct}
-          currentUserId={currentUserId}
-          isAdmin={userRole === "admin"}
-          isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
-        />
-      )}
+      <Suspense fallback={null}>
+        <Pagination page={page} setPage={setPage} itemsLength={products.length} limit={limit} />
+      </Suspense>
 
-      {editingProduct && (
-        <ProductEditor
-          ref={editRef}
-          product={editingProduct}
-          onSave={handleSaveProduct}
-          onRemoveFavorite={handleRemoveFavorite}
-          onDelete={handleDeleteProduct}
-          currentUserId={currentUserId}
-          isAdmin={userRole === "admin"}
-        />
-      )}
+      <Suspense fallback={null}>
+        {selectedProduct && (
+          <ProductCard
+            ref={cardRef}
+            product={selectedProduct}
+            onEdit={() => { setEditingProduct(selectedProduct); setSelectedProduct(null); }}
+            onRemoveFavorite={handleRemoveFavorite}
+            onDelete={handleDeleteProduct}
+            currentUserId={currentUserId}
+            isAdmin={userRole === "admin"}
+            isFavorite={favoriteProducts.some(fav => fav.id === selectedProduct.id)}
+          />
+        )}
+      </Suspense>
+
+      <Suspense fallback={null}>
+        {editingProduct && (
+          <ProductEditor
+            ref={editRef}
+            product={editingProduct}
+            onSave={handleSaveProduct}
+            onRemoveFavorite={handleRemoveFavorite}
+            onDelete={handleDeleteProduct}
+            currentUserId={currentUserId}
+            isAdmin={userRole === "admin"}
+          />
+        )}
+      </Suspense>
     </Box>
   );
 }
