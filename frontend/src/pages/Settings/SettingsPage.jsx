@@ -1,7 +1,8 @@
-import { Box, Card, CardHeader, Flex, Badge, Heading, Button, Avatar, Input, IconButton } from "@chakra-ui/react";
+import { Box, Card, CardHeader, Flex, Badge, Heading, Button, Avatar, Input, IconButton, Text, Stack, Skeleton } from "@chakra-ui/react";
 import { EditIcon, CloseIcon } from "@chakra-ui/icons";
 import { useState, useEffect, useContext, useRef } from "react";
 import { getUserInfo, uploadAvatar, getAvatar, deleteAvatar } from "../../api/user";
+import { getQuote } from "../../api/quote";
 import { AuthContext } from "../../context/AuthContext";
 
 import SettingsItem from "./SettingsItem";
@@ -12,6 +13,9 @@ export default function SettingsPage() {
   const [settingsOpen, setSettingsOpen] = useState("");
   const [userInfo, setUserInfo] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
+
+  const [quote, setQuote] = useState(null);
+  const [quoteLoading, setQuoteLoading] = useState(true);
 
   const fileInputRef = useRef(null);
   const { logout } = useContext(AuthContext);
@@ -38,6 +42,29 @@ export default function SettingsPage() {
     }
 
     fetchAvatar();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchQuote() {
+      setQuoteLoading(true);
+      try {
+        const data = await getQuote();
+        if (!cancelled) {
+          setQuote(data && data.text ? data : null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch quote:", err);
+      } finally {
+        if (!cancelled) setQuoteLoading(false);
+      }
+    }
+
+    fetchQuote();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function openFileDialog() {
@@ -73,7 +100,7 @@ export default function SettingsPage() {
       <Card backgroundColor="#ECECEC" padding="3vh" marginTop="3vh">
         <CardHeader padding="0 0 1rem 0">
           <Flex justify="space-between" align="center">
-            <Flex align="stretch" gap="1.5rem">
+            <Flex align="center" gap="1.5rem">
               <Avatar
                 size="xl"
                 bg="purple.500"
@@ -82,38 +109,55 @@ export default function SettingsPage() {
                 cursor={!avatarUrl ? "pointer" : "default"}
                 onClick={!avatarUrl ? openFileDialog : undefined}
               />
-              <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="space-between"
-                p="0.2rem 0.5rem"
-              >
-                <Heading size="lg">
-                  {userInfo.username}
-                </Heading>
+              <Box display="flex" flexDirection="column" justifyContent="space-between" p="0.2rem 0.5rem">
+                <Heading size="lg">{userInfo.username}</Heading>
                 {avatarUrl && (
-                  <Flex gap="0.5rem">
-                    <IconButton
-                      icon={<EditIcon />}
-                      colorScheme="purple"
-                      size="sm"
-                      onClick={openFileDialog}
-                    />
-                    <IconButton
-                      icon={<CloseIcon />}
-                      colorScheme="red"
-                      size="sm"
-                      onClick={handleAvatarDelete}
-                    />
+                  <Flex gap="0.5rem" mt="0.3rem">
+                    <IconButton icon={<EditIcon />} colorScheme="purple" size="sm" onClick={openFileDialog} />
+                    <IconButton icon={<CloseIcon />} colorScheme="red" size="sm" onClick={handleAvatarDelete} />
                   </Flex>
                 )}
               </Box>
             </Flex>
-            {userInfo.role === "admin" && (
-              <Badge colorScheme="purple" variant="subtle" fontSize="1em">
-                ADMIN
-              </Badge>
-            )}
+
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              maxW="calc(100% - 250px)"
+              px="1rem"
+            >
+              {quoteLoading ? (
+                <Stack w="100vh">
+                  <Skeleton height="1rem" />
+                  <Skeleton height="1rem" />
+                </Stack>
+              ) : (
+                quote && (
+                  <Box display="inline-block">
+                    <Text fontSize="sm" fontStyle="italic" color="gray.600">
+                      "{quote.text}"
+                    </Text>
+                    {quote.author && (
+                      <Text fontSize="xs" color="gray.600" textAlign="right" pr="0.4rem" width="100%">
+                        {quote.author}
+                      </Text>
+                    )}
+                  </Box>
+                )
+              )}
+            </Box>
+
+            <Box flex="0 0 auto">
+              {userInfo.role === "admin" ? (
+                <Badge colorScheme="purple" variant="subtle" fontSize="1em">
+                  ADMIN
+                </Badge>
+              ) : (
+                <Box width="60px" />
+              )}
+            </Box>
           </Flex>
         </CardHeader>
 
