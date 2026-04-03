@@ -1,16 +1,18 @@
 import { Card, Box, Input, Button, Select, InputGroup, InputRightElement, useOutsideClick } from "@chakra-ui/react";
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-
-import ToggleCards from "../../components/ToggleCards";
-import DishesList from "./DishesList";
-import DishCard from "./DishCard";
-import Pagination from "../../components/Pagination";
+import { Helmet } from "react-helmet-async";
+import { Heading } from "@chakra-ui/react";
 
 import { searchDishes, deleteDish, getFavoriteDishes, removeFavoriteDish, getDishProducts } from "../../api/dishes";
 import { listProducts } from "../../api/products";
 import { AuthContext } from "../../context/AuthContext";
+
+import ToggleCards from "../../components/ToggleCards";
+const DishesList = lazy(() => import("./DishesList"));
+const DishCard = lazy(() => import("./DishCard"));
+const Pagination = lazy(() => import("../../components/Pagination"));
 
 export default function DishesPage() {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ export default function DishesPage() {
   const [favoriteDishes, setFavoriteDishes] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [minCalories, setMinCalories] = useState("");
   const [maxCalories, setMaxCalories] = useState("");
   const [desc, setDesc] = useState(true);
@@ -32,6 +35,13 @@ export default function DishesPage() {
   const limit = 10;
 
   useOutsideClick({ ref: cardRef, handler: () => setSelectedDish(null) });
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -54,7 +64,7 @@ export default function DishesPage() {
         if (selectedSection === "Мои блюда") {
           setDishes(favoriteDishes.slice(offset, offset + limit));
         } else {
-          const queryTrimmed = searchQuery.trim();
+          const queryTrimmed = debouncedQuery.trim();
           const min = minCalories ? Number(minCalories) : undefined;
           const max = maxCalories ? Number(maxCalories) : undefined;
 
@@ -74,7 +84,7 @@ export default function DishesPage() {
       }
     }
     fetchDishes();
-  }, [selectedSection, favoriteDishes, searchQuery, minCalories, maxCalories, page, desc]);
+  }, [selectedSection, favoriteDishes, debouncedQuery, minCalories, maxCalories, page, desc]);
 
   useEffect(() => {
     if (!selectedDish?.id) return;
@@ -158,6 +168,37 @@ export default function DishesPage() {
 
   return (
     <Box margin="2vh 10vw">
+      <Helmet>
+        <title>КБЖУ блюд</title>
+        <meta name="description" content="Список блюд с калорийностью и пищевой ценностью (БЖУ)" />
+        <link rel="canonical" href={`${window.location.origin}/dishes`} />
+
+        <meta property="og:title" content="КБЖУ блюд" />
+        <meta property="og:description" content="Список блюд с КБЖУ" />
+        <meta property="og:type" content="website" />
+
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": dishes.map(dish => ({
+              "@type": "Dish",
+              "name": dish.name,
+              "nutrition": {
+                "@type": "NutritionInformation",
+                "calories": `${dish.calories} kcal`,
+                "proteinContent": `${dish.protein} g`,
+                "fatContent": `${dish.fat} g`,
+                "carbohydrateContent": `${dish.carbs} g`
+              }
+            }))
+          })}
+        </script>
+      </Helmet>
+
+      <Heading as="h1" position="absolute" left="-9999px">
+        Список блюд с КБЖУ
+      </Heading>
+
       <ToggleCards
         option1="Мои блюда"
         option2="Все блюда"
@@ -221,32 +262,39 @@ export default function DishesPage() {
         Добавить блюдо
       </Button>
 
-      {dishes.length > 0 ? (
-        <DishesList
-          dishes={dishes}
-          setSelectedDish={setSelectedDish}
-          favoriteDishes={favoriteDishes}
-          setFavoriteDishes={setFavoriteDishes}
-          isAuthenticated={isAuthenticated}
-        />
-      ) : (
-        <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
-          Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить блюдо.
-        </Card>
-      )}
-      <Pagination page={page} setPage={setPage} itemsLength={dishes.length} limit={limit} />
+      <Suspense fallback={<Card padding="3vh" backgroundColor="#ECECEC">Загрузка...</Card>}>
+        {dishes.length > 0 ? (
+          <DishesList
+            dishes={dishes}
+            setSelectedDish={setSelectedDish}
+            favoriteDishes={favoriteDishes}
+            setFavoriteDishes={setFavoriteDishes}
+            isAuthenticated={isAuthenticated}
+          />
+        ) : (
+          <Card backgroundColor="#ECECEC" padding="3vh" textAlign="center">
+            Здесь пока ничего нет. Нажмите на кнопку, чтобы добавить блюдо.
+          </Card>
+        )}
+      </Suspense>
 
-      {selectedDish && (
-        <DishCard
-          ref={cardRef}
-          dish={selectedDish}
-          isFavorite={favoriteDishes.some(d => d.id === selectedDish.id)}
-          onRemoveFavorite={handleRemoveFavorite}
-          onDeleteDish={handleDeleteDish}
-          currentUserId={currentUserId}
-          isAdmin={userRole === "admin"}
-        />
-      )}
+      <Suspense fallback={null}>
+        <Pagination page={page} setPage={setPage} itemsLength={dishes.length} limit={limit} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        {selectedDish && (
+          <DishCard
+            ref={cardRef}
+            dish={selectedDish}
+            isFavorite={favoriteDishes.some(d => d.id === selectedDish.id)}
+            onRemoveFavorite={handleRemoveFavorite}
+            onDeleteDish={handleDeleteDish}
+            currentUserId={currentUserId}
+            isAdmin={userRole === "admin"}
+          />
+        )}
+      </Suspense>
     </Box>
   );
 }
