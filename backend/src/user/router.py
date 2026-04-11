@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from minio import Minio
 from typing import List
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
 from ..dependencies import get_current_user_id
+from ..s3 import get_minio
 from ..dish import DishOut
 from ..product import ProductOut
 from ..user.models import User
@@ -125,9 +127,10 @@ async def update_user_role_endpoint(
 async def upload_avatar_endpoint(
     file: UploadFile = File(...),
     current_user: UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    minio: Minio = Depends(get_minio)
 ):
-    avatar_key = await UserService.upload_avatar(db, current_user, file)
+    avatar_key = await UserService.upload_avatar(db, minio, current_user, file)
     if not avatar_key:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -136,9 +139,10 @@ async def upload_avatar_endpoint(
 @router.get("/me/avatar", response_model=dict)
 async def get_avatar_endpoint(
     current_user: UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    minio: Minio = Depends(get_minio)
 ):
-    avatar_url = await UserService.get_avatar_url(db, current_user)
+    avatar_url = await UserService.get_avatar_url(db, minio, current_user)
 
     if not avatar_url:
         raise HTTPException(status_code=404, detail="Avatar not found")
@@ -148,9 +152,10 @@ async def get_avatar_endpoint(
 @router.delete("/me/avatar", response_model=dict)
 async def delete_avatar_endpoint(
     current_user: UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    minio: Minio = Depends(get_minio)
 ):
-    deleted = await UserService.delete_avatar(db, current_user)
+    deleted = await UserService.delete_avatar(db, minio, current_user)
 
     if not deleted:
         raise HTTPException(status_code=404, detail="Avatar not found")
