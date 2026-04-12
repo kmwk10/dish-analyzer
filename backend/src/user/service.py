@@ -9,8 +9,8 @@ import uuid
 
 from ..auth.security import verify_password, hash_password
 from ..s3 import upload_file, delete_file, generate_presigned_url
-from ..dish import Dish
-from ..product import Product
+from ..dish.models import Dish
+from ..product.models import Product
 
 from .models import User, FavoriteDish, FavoriteProduct
 

@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
 from ..dependencies import get_current_user_id
 from ..s3 import get_minio
-from ..dish import DishOut
-from ..product import ProductOut
+from ..product.schemas import ProductOut
+from ..dish.schemas import DishOut
 from ..user.models import User
 
 from .schemas import UserUpdate, UserOut, PasswordUpdate, UserRoleUpdate

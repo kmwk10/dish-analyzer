@@ -6,9 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
-from ..user import User
-from ..dependencies import decode_token
+from ..user.models import User
 from ..auth.models import RefreshToken
+from ..dependencies import decode_token
 
 from .security import (
     hash_password,
