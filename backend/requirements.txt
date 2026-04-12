@@ -12,3 +12,6 @@ bcrypt==3.2.2
 minio
 python-multipart
 httpx
+pytest
+pytest-asyncio
+pytest-mock
