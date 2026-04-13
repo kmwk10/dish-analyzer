@@ -127,7 +127,7 @@ describe("SettingsPage (integration)", () => {
     const input = document.querySelector('input[type="file"]');
     const spy = jest.spyOn(input, "click");
 
-    await userEvent.click(avatar);
+    userEvent.click(avatar);
     expect(spy).toHaveBeenCalled();
   });
 
@@ -140,7 +140,7 @@ describe("SettingsPage (integration)", () => {
     userApi.getAvatar.mockResolvedValue("new-avatar-url");
 
     await act(async () => {
-      await userEvent.upload(input, file);
+      userEvent.upload(input, file);
     });
 
     await waitFor(() => {
@@ -153,7 +153,7 @@ describe("SettingsPage (integration)", () => {
     await renderSettingsPage();
     const nameItem = await screen.findByText("Имя");
 
-    await userEvent.click(nameItem);
+    userEvent.click(nameItem);
     expect(screen.getByTestId("settings-card")).toHaveTextContent("username");
   });
 
@@ -161,7 +161,7 @@ describe("SettingsPage (integration)", () => {
     await renderSettingsPage();
     const passwordItem = await screen.findByText("Пароль");
 
-    await userEvent.click(passwordItem);
+    userEvent.click(passwordItem);
     expect(screen.getByTestId("password-card")).toBeInTheDocument();
   });
 
@@ -169,7 +169,7 @@ describe("SettingsPage (integration)", () => {
     await renderSettingsPage();
     const logoutBtn = await screen.findByRole("button", { name: /выйти/i });
 
-    await userEvent.click(logoutBtn);
+    userEvent.click(logoutBtn);
     expect(mockLogout).toHaveBeenCalled();
   });
 
@@ -180,7 +180,7 @@ describe("SettingsPage (integration)", () => {
     const deleteBtn = await screen.findByText("Close");
     userApi.deleteAvatar.mockResolvedValue({});
 
-    await userEvent.click(deleteBtn);
+    userEvent.click(deleteBtn);
 
     await waitFor(() => {
       expect(userApi.deleteAvatar).toHaveBeenCalled();
