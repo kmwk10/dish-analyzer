@@ -11,7 +11,7 @@ jest.mock("@chakra-ui/react", () => ({
 describe("Navbar", () => {
   it("renders all links", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Navbar />
       </MemoryRouter>
     );
@@ -23,7 +23,7 @@ describe("Navbar", () => {
 
   it("renders correct number of links", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Navbar />
       </MemoryRouter>
     );
@@ -33,7 +33,7 @@ describe("Navbar", () => {
 
   it("has correct routes", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Navbar />
       </MemoryRouter>
     );
