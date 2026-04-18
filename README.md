@@ -9,19 +9,11 @@ cd dish-analyzer
 
 Скопируйте пример файлов окружения `.env.example` в `.env`.
 
-Для backend:
-
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-Для frontend:
-
-```bash
-cp frontend/.env.example frontend/.env
-```
-
-> При необходимости отредактируйте `.env` файлы, чтобы задать свои значения переменных окружения.
+> При необходимости отредактируйте `.env` файл, чтобы задать свои значения переменных окружения.
 
 Соберите и запустите контейнеры с помощью Docker Compose:
 
