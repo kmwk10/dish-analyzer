@@ -1,6 +1,7 @@
 from typing import Optional, List
 from uuid import UUID
 from fastapi import HTTPException, UploadFile
+from minio import Minio
 
 from sqlalchemy import select, delete, update, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,8 +9,8 @@ import uuid
 
 from ..auth.security import verify_password, hash_password
 from ..s3 import upload_file, delete_file, generate_presigned_url
-from ..dish import Dish
-from ..product import Product
+from ..dish.models import Dish
+from ..product.models import Product
 
 from .models import User, FavoriteDish, FavoriteProduct
 
@@ -133,7 +134,7 @@ class UserService:
         user = result.scalar_one_or_none()
         return user
 
-    async def upload_avatar(db: AsyncSession, user_id: UUID, file: UploadFile) -> Optional[str]:
+    async def upload_avatar(db: AsyncSession, minio: Minio, user_id: UUID, file: UploadFile) -> Optional[str]:
         user = await UserService.get_user(db, user_id)
         if not user:
             return None
@@ -150,9 +151,9 @@ class UserService:
         object_key = f"{uuid.uuid4()}.{extension}"
 
         if user.avatar_key:
-            delete_file(user.avatar_key)
+            delete_file(user.avatar_key, minio)
 
-        upload_file(object_key, file_bytes, file.content_type)
+        upload_file(object_key, file_bytes, file.content_type, minio)
 
         user.avatar_key = object_key
         await db.commit()
@@ -161,7 +162,7 @@ class UserService:
         return object_key
 
     @staticmethod
-    async def get_avatar_url(db: AsyncSession, user_id: UUID) -> Optional[str]:
+    async def get_avatar_url(db: AsyncSession, minio: Minio, user_id: UUID) -> Optional[str]:
         user = await UserService.get_user(db, user_id)
         if not user or not user.avatar_key:
             return None
@@ -169,12 +170,12 @@ class UserService:
         return generate_presigned_url(user.avatar_key)
 
     @staticmethod
-    async def delete_avatar(db: AsyncSession, user_id: UUID) -> bool:
+    async def delete_avatar(db: AsyncSession, minio: Minio, user_id: UUID) -> bool:
         user = await UserService.get_user(db, user_id)
         if not user or not user.avatar_key:
             return False
 
-        delete_file(user.avatar_key)
+        delete_file(user.avatar_key, minio)
 
         user.avatar_key = None
         await db.commit()

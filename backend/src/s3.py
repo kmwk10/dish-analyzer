@@ -4,6 +4,7 @@ from minio import Minio
 from minio.error import S3Error
 from typing import Optional
 from datetime import timedelta
+from functools import lru_cache
 
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
 MINIO_EXTERNAL_URL = os.getenv("MINIO_EXTERNAL_URL")
@@ -12,21 +13,28 @@ MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 MINIO_BUCKET = os.getenv("MINIO_BUCKET")
 USE_SECURE = os.getenv("MINIO_USE_SECURE") == "1"
 
-client = Minio(
-    MINIO_ENDPOINT,
-    access_key=MINIO_ACCESS_KEY,
-    secret_key=MINIO_SECRET_KEY,
-    secure=USE_SECURE
-)
 
-if not client.bucket_exists(MINIO_BUCKET):
-    client.make_bucket(MINIO_BUCKET)
+def init_minio():
+    return Minio(
+        MINIO_ENDPOINT,
+        access_key=MINIO_ACCESS_KEY,
+        secret_key=MINIO_SECRET_KEY,
+        secure=USE_SECURE
+    )
 
 
-def upload_file(object_name: str, file_data: bytes, content_type: str) -> None:
+@lru_cache
+def get_minio():
+    client = init_minio()
+    if not client.bucket_exists(MINIO_BUCKET):
+        client.make_bucket(MINIO_BUCKET)
+    return client
+
+
+def upload_file(object_name: str, file_data: bytes, content_type: str, minio) -> None:
     file_stream = io.BytesIO(file_data)
 
-    client.put_object(
+    minio.put_object(
         bucket_name=MINIO_BUCKET,
         object_name=object_name,
         data=file_stream,
@@ -35,11 +43,12 @@ def upload_file(object_name: str, file_data: bytes, content_type: str) -> None:
     )
 
 
-def delete_file(object_name: str) -> None:
+def delete_file(object_name: str, minio) -> None:
     try:
-        client.remove_object(MINIO_BUCKET, object_name)
+        minio.remove_object(MINIO_BUCKET, object_name)
     except S3Error as e:
         print(f"MinIO delete error: {e}")
+
 
 def generate_presigned_url(object_name: str, expires: int = 3600):
     try:

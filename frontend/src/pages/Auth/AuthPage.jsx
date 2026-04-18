@@ -47,7 +47,6 @@ export default function AuthPage() {
 
       navigate("/"); 
     } catch (e) {
-      console.error(e);
       setError("Неверная почта или пароль");
     } finally {
       setLoading(false);
@@ -82,7 +81,6 @@ export default function AuthPage() {
 
       navigate("/");
     } catch (e) {
-      console.error(e);
       setError("Ошибка регистрации");
     } finally {
       setLoading(false);
