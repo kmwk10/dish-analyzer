@@ -7,7 +7,7 @@ git clone https://github.com/kmwk10/dish-analyzer.git
 cd dish-analyzer
 ```
 
-Скопируйте пример файлов окружения `.env.example` в `.env`.
+Скопируйте пример файла окружения `.env.example` в `.env`.
 
 ```bash
 cp backend/.env.example backend/.env
