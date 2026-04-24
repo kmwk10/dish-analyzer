@@ -10,6 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      retries: 5
+      timeout: 3s
 
   minio:
     image: minio/minio:latest
@@ -23,6 +28,11 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 3s
+      retries: 5
+      timeout: 3s
 
   backend:
     build:
@@ -35,18 +45,28 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     command: ["./entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile
     container_name: frontend
-    depends_on:
-      - backend
     ports:
       - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
 
 volumes:
   pgdata:

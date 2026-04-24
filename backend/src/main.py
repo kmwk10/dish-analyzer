@@ -17,6 +17,10 @@ app.include_router(user_router)
 app.include_router(seo_router)
 app.include_router(external_router)
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
